@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 import argparse
 import yaml
+import sys
 
 from torch.utils.data import DataLoader
 import torch
@@ -13,12 +14,12 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 
 from model.models import ImplicitNetSegPrior, ImplicitNetSeparateSegPrior, ImplicitNetMountedSegPrior, \
     ImplicitNetSeparateSegLatent, ImplicitNetSegLatent, ImplicitNetMountedSegLatent
-from data_loading.data_loader import Seg4DWholeImage_SAX, Seg3DWholeImage_SAX, Seg4DWholeImage_SAX_test
+from data_loading.data_loader import Seg4DWholeImage_SAX, Seg3DWholeImage_SAX, Seg4DWholeImage_SAX_test, Seg4DWholeImage_SAX_UKB, Seg4DWholeImage_SAX_UKB_test
 from utils import ValProgressBar
 
 LATEST_CHECKPOINT_DIR = "latest_checkpoint"
 BEST_WEIGHTS_PATH = "best_weights.pt"
-CONFIG_SAVE_PATH = "config.yaml"
+CONFIG_SAVE_PATH = "config_UKB.yaml"
 
 
 @dataclass
@@ -97,7 +98,7 @@ def main_train(config_path: Optional[str] = None, exp_name: Optional[str] = None
     root_dir = Path(config["log_dir"])
 
     # Dataset
-    dataset = Seg4DWholeImage_SAX(load_dir=config["train_data_dir"],
+    dataset = Seg4DWholeImage_SAX_UKB(load_dir=config["train_data_dir"],
                                   case_start_idx=config.get("train_start_idx", 0),
                                   num_cases=config["num_train"],
                                   **params.__dict__)
@@ -105,7 +106,7 @@ def main_train(config_path: Optional[str] = None, exp_name: Optional[str] = None
     assert coord_dimensions == len(params.side_length)
     train_dataloader = DataLoader(dataset, shuffle=True)
 
-    val_dataset = Seg4DWholeImage_SAX_test(load_dir=config["val_data_dir"],
+    val_dataset = Seg4DWholeImage_SAX_UKB_test(load_dir=config["val_data_dir"],
                                            case_start_idx=config.get("val_start_idx", config["num_train"]),
                                            num_cases=config["num_val"],
                                            **params.__dict__)
@@ -127,7 +128,8 @@ def main_train(config_path: Optional[str] = None, exp_name: Optional[str] = None
     ckpt_latest_saver = ModelCheckpoint(save_top_k=1, dirpath=root_dir / LATEST_CHECKPOINT_DIR,
                                         monitor="step", mode="max")
     # Trainer
-    trainer = pl.Trainer(max_epochs=params.max_epochs, accelerator="gpu",
+    accel = "gpu" if torch.cuda.is_available() else "cpu"
+    trainer = pl.Trainer(max_epochs=params.max_epochs, accelerator=accel,
                          default_root_dir=root_dir, callbacks=[ckpt_latest_saver])
     start = datetime.now()
     trainer.fit(model, train_dataloaders=train_dataloader)
@@ -173,7 +175,7 @@ def main_eval(weights_path: str, config_path: Optional[str] = None):
     print(root_dir)
 
     # Define dataset and model
-    dataset = Seg4DWholeImage_SAX_test(load_dir=config["test_data_dir"],
+    dataset = Seg4DWholeImage_SAX_UKB_test(load_dir=config["test_data_dir"],
                                        case_start_idx=config.get("test_start_idx", config["num_train"] + config["num_val"]),
                                        num_cases=config["num_test"],
                                        **params)
@@ -213,7 +215,7 @@ def parse_command_line():
     parser_train = main_subparsers.add_parser("train")
     parser_train.add_argument("-c", "--config",
                               help="path to configuration file", required=False,
-                              default=r"C:\Users\nilst\Documents\Implicit_segmentation\configs\4d_cardiac_config.yaml"
+                              default=r"C:\Users\touto\OneDrive\Documents\GitLab\DLShapeAnalysis\configs\config_UKB.yaml"
                               )
     parser_train.add_argument("-n", "--exp_name",
                               help="custom experiment name", required=False,
@@ -233,6 +235,8 @@ def parse_command_line():
 if __name__ == '__main__':
     args = parse_command_line()
     if args.pipeline is None or args.pipeline == "train":
+        sys.argv.append("train")
+        args = parse_command_line()
         config_path, exp_name = args.config, args.exp_name
         weights_path, fine_tune_epochs = main_train(config_path, exp_name)
         main_eval(weights_path, config_path)

@@ -164,7 +164,8 @@ class AbstractPrior(Abstract):
 
         self.dice_loss = DiceLoss(reduction="none")
         self.seg_loss_weight = kwargs.get("seg_loss_weight", 1.0)
-        self.seg_class_weights = torch.tensor(kwargs.get("seg_class_weights"), dtype=torch.float32, device="cuda")
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.seg_class_weights = torch.tensor(kwargs.get("seg_class_weights"), dtype=torch.float32, device=device)
 
         self.val_dataset: AbstractDataset = val_dataset
         self.initial_val = kwargs.get("initial_val", False)
@@ -675,7 +676,7 @@ class ImplicitNetSegPrior(AbstractPrior):
 
     def training_step(self, batch):
         coord, image, sample_idx, seg, aug_params = batch
-        h = self.h[sample_idx].cuda()
+        h = self.h[sample_idx] # .cuda()
         h = torch.cat((h, aug_params), dim=1)
         pred_im, pred_seg = self.forward(coord, h)
         loss = 0
@@ -791,7 +792,7 @@ class ImplicitNetMountedSegPrior(ImplicitNetSegPrior):
         # out_ = self.seg_backbone((c_enc, out_.detach()))  TODO
         # pred_seg_ = self.seg_head(out_)
         # pred_seg = pred_seg_.view((*coord.shape[:-1], pred_seg_.shape[-1])).moveaxis(-1, 1)
-        pred_seg = torch.zeros((*coord.shape[:-1], 4)).moveaxis(-1, 1).cuda()
+        pred_seg = torch.zeros((*coord.shape[:-1], 4)).moveaxis(-1, 1) # .cuda()
         # pred_recon = torch.zeros(coord.shape[:-1]).cuda()
         return pred_recon, pred_seg
 

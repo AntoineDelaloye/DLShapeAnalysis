@@ -3,7 +3,7 @@ from typing import Union, Optional
 
 import numpy as np
 import torch
-from pytorch_lightning.callbacks import ProgressBarBase, TQDMProgressBar
+from pytorch_lightning.callbacks import TQDMProgressBar
 from monai.losses import ContrastiveLoss
 import os
 from pathlib import Path
@@ -157,6 +157,78 @@ def contrastive_loss_all_elements(latents: torch.Tensor, neg_weight: float = 1.0
         for j in range(pos_samples):
             loss[i, j] = contr_loss(latents[i, j], target)
     return loss
+
+def find_SAX_images_UKB(load_dir: Union[str, Path], num_cases:int = -1, case_start_idx:int = 0, **kwargs):
+    ims = []
+    segs = []
+    count = 0
+    start_time = time.time()
+    spcs = []
+    shapes = []
+
+    patients = os.listdir(Path(load_dir))
+    patients = [i for i in patients if i.startswith('sub-')]
+    for i, patientID in enumerate(patients):
+        if i < case_start_idx:
+            continue
+        if num_cases > 0 and count >= num_cases:
+            break
+        im_path = Path(load_dir) / patientID / "anat" / f"{patientID}_img-short_axis_tp-2.nii.gz"
+        seg_path = Path(load_dir) / "derivatives" / "sa_segmentation" / patientID / f"{patientID}_sa_seg_all.nii.gz"
+        if not os.path.exists(im_path):
+            continue
+        if not os.path.exists(seg_path):
+            continue
+        im = nib.load(im_path)
+        shapes.append(im.shape)
+        spcs.append(im.header.get_zooms())
+        ims.append(im_path)
+        segs.append(seg_path)
+        count += 1
+    if num_cases > 0 and count != num_cases:
+        raise ValueError(f"Did not find required amount of cases ({num_cases}) in directory: {load_dir}")
+    elapsed = time.time() - start_time
+    print(f"Found {count} cases in {elapsed//60}m {int(elapsed%60)}s.")
+    return ims, segs, None
+
+    
+find_SAX_images_UKB("C:/Users/touto/OneDrive/Documents/GitLab/DLShapeAnalysis/UKB_Dataset", num_cases=2, case_start_idx=2)
+    # ims = []
+    # segs = []
+    # bboxes = []
+    # count = 0
+    # img_file = "_img-short_axis_tp-2.nii.gz" # with sub-1459358 or sub-2515057 or sub-2987781 or sub-4452054 or sub-4893841
+    # seg_file = "_sa_seg_all.nii.gz"          # at the beginning of the file name
+    # start_time = time.time()
+    # spcs = []
+    # shapes = []
+    # for i, (parent, subdir, files) in enumerate(os.walk(str(load_dir))):
+    #     if i < case_start_idx:
+    #         continue
+    #     if num_cases > 0 and count >= num_cases:
+    #         break
+    #     im_path = Path(parent) / img_file
+    #     seg_path = Path(parent) / seg_file
+    #     if not os.path.exists(im_path):
+    #         continue
+    #     if not os.path.exists(seg_path):
+    #         continue
+    #     im = nib.load(im_path)
+    #     shapes.append(im.shape)
+    #     spcs.append(im.header.get_zooms())
+    #     ims.append(im_path)
+    #     segs.append(seg_path)
+    #     if get_bbox:
+    #         seg = nib.load(seg_path).get_data()
+    #         arg = np.argwhere(seg > 0)
+    #         bbox = (arg.min(0), arg.max(0))
+    #         bboxes.append(bbox)
+    #     count += 1
+    # if num_cases > 0 and count != num_cases:
+    #     raise ValueError(f"Did not find required amount of cases ({num_cases}) in directory: {load_dir}")
+    # elapsed = time.time() - start_time
+    # print(f"Found {count} cases in {elapsed//60}m {int(elapsed%60)}s.")
+    # return ims, segs, bboxes if get_bbox else None
 
 
 # def contrastive_loss_random(latents: torch.Tensor, neg_weight: float = 1.0, pos_weight: float = 1.0, samples: int = 5) \
