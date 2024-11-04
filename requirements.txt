@@ -1,7 +1,4 @@
---extra-index-url https://download.pytorch.org/whl/cu118
-torch
-torchvision
-torchaudio
+pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
 numpy == 1.26.4
 scipy == 1.14.1
 typing == 3.7.4.3
