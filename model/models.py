@@ -208,7 +208,7 @@ class AbstractPrior(Abstract):
         del state_dict['h']
         miss_keys = val_model.load_state_dict(state_dict, strict=False)
         assert 'h' in miss_keys.missing_keys and len(miss_keys.missing_keys) == 1
-        val_trainer = pl.Trainer(max_epochs=self.val_max_epochs, accelerator="gpu",
+        val_trainer = pl.Trainer(max_epochs=self.val_max_epochs, accelerator="cpu",
                                  enable_model_summary=False, logger=False,
                                  enable_checkpointing=False, callbacks=[ValProgressBar()])
         val_trainer.fit(val_model, train_dataloaders=DataLoader(self.val_dataset, batch_size=1, shuffle=False))
@@ -676,7 +676,7 @@ class ImplicitNetSegPrior(AbstractPrior):
 
     def training_step(self, batch):
         coord, image, sample_idx, seg, aug_params = batch
-        h = self.h[sample_idx] # .cuda()
+        h = self.h[sample_idx] #.cuda()
         h = torch.cat((h, aug_params), dim=1)
         pred_im, pred_seg = self.forward(coord, h)
         loss = 0

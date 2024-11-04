@@ -200,7 +200,7 @@ def main_eval(weights_path: str, config_path: Optional[str] = None):
     else:
         max_epochs = params["fine_tune_max_epochs"]
     trainer = pl.Trainer(max_epochs=max_epochs,
-                         accelerator="gpu",
+                         accelerator="cpu",
                          default_root_dir=root_dir,
                          enable_model_summary=False,
                          enable_checkpointing=False, callbacks=[ValProgressBar()])
@@ -215,7 +215,7 @@ def parse_command_line():
     parser_train = main_subparsers.add_parser("train")
     parser_train.add_argument("-c", "--config",
                               help="path to configuration file", required=False,
-                              default=r"C:\Users\touto\OneDrive\Documents\GitLab\DLShapeAnalysis\configs\config_UKB.yaml"
+                              default=r"/home/ajdelalo/projects/DLShapeAnalysis/configs/config_UKB.yaml"
                               )
     parser_train.add_argument("-n", "--exp_name",
                               help="custom experiment name", required=False,

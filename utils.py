@@ -12,8 +12,8 @@ import nibabel as nib
 
 class ValProgressBar(TQDMProgressBar):
     def on_train_epoch_start(self, trainer, *_) -> None:
-        self.main_progress_bar.initial = 0
-        self.main_progress_bar.set_description(f"Validation epoch {trainer.current_epoch} / {trainer.max_epochs}")
+        self._train_progress_bar.initial = 0
+        self._train_progress_bar.set_description(f"Validation epoch {trainer.current_epoch} / {trainer.max_epochs}")
 
 
 def square_image(im: np.ndarray, seg: np.ndarray):
@@ -192,7 +192,7 @@ def find_SAX_images_UKB(load_dir: Union[str, Path], num_cases:int = -1, case_sta
     return ims, segs, None
 
     
-find_SAX_images_UKB("C:/Users/touto/OneDrive/Documents/GitLab/DLShapeAnalysis/UKB_Dataset", num_cases=2, case_start_idx=2)
+# find_SAX_images_UKB("C:/Users/touto/OneDrive/Documents/GitLab/DLShapeAnalysis/UKB_Dataset", num_cases=2, case_start_idx=2)
     # ims = []
     # segs = []
     # bboxes = []
