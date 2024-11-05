@@ -234,9 +234,13 @@ def parse_command_line():
 
 if __name__ == '__main__':
     args = parse_command_line()
-    if args.pipeline is None or args.pipeline == "train":
+    if args.pipeline is None:
         sys.argv.append("train")
         args = parse_command_line()
+        config_path, exp_name = args.config, args.exp_name
+        weights_path, fine_tune_epochs = main_train(config_path, exp_name)
+        main_eval(weights_path, config_path)
+    elif args.pipeline == "train":
         config_path, exp_name = args.config, args.exp_name
         weights_path, fine_tune_epochs = main_train(config_path, exp_name)
         main_eval(weights_path, config_path)
