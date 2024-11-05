@@ -19,7 +19,7 @@ from utils import ValProgressBar
 
 LATEST_CHECKPOINT_DIR = "latest_checkpoint"
 BEST_WEIGHTS_PATH = "best_weights.pt"
-CONFIG_SAVE_PATH = "config_UKB.yaml"
+CONFIG_SAVE_PATH = "config_cluster.yaml"
 
 
 @dataclass
@@ -215,7 +215,7 @@ def parse_command_line():
     parser_train = main_subparsers.add_parser("train")
     parser_train.add_argument("-c", "--config",
                               help="path to configuration file", required=False,
-                              default=r"/home/ajdelalo/projects/DLShapeAnalysis/configs/config_UKB.yaml"
+                              default=r"/home/ajdelalo/projects/DLShapeAnalysis/configs/config_cluster.yaml"
                               )
     parser_train.add_argument("-n", "--exp_name",
                               help="custom experiment name", required=False,
