@@ -208,7 +208,8 @@ class AbstractPrior(Abstract):
         del state_dict['h']
         miss_keys = val_model.load_state_dict(state_dict, strict=False)
         assert 'h' in miss_keys.missing_keys and len(miss_keys.missing_keys) == 1
-        val_trainer = pl.Trainer(max_epochs=self.val_max_epochs, accelerator="cpu",
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        val_trainer = pl.Trainer(max_epochs=self.val_max_epochs, accelerator=device,
                                  enable_model_summary=False, logger=False,
                                  enable_checkpointing=False, callbacks=[ValProgressBar()])
         val_trainer.fit(val_model, train_dataloaders=DataLoader(self.val_dataset, batch_size=1, shuffle=False))

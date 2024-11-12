@@ -199,8 +199,10 @@ def main_eval(weights_path: str, config_path: Optional[str] = None):
         max_epochs = params["fine_tune_optimal_epochs"]
     else:
         max_epochs = params["fine_tune_max_epochs"]
+    
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     trainer = pl.Trainer(max_epochs=max_epochs,
-                         accelerator="cpu",
+                         accelerator=device,
                          default_root_dir=root_dir,
                          enable_model_summary=False,
                          enable_checkpointing=False, callbacks=[ValProgressBar()])
