@@ -14,8 +14,8 @@ singularity_path='/data/bdip2/jbanusco/SingularityImages'
 singularity_img=${singularity_path}/dl_shape_0.0.sif
 
 # Dataset path
-dataset_path="/data/bdip2/an1979/UKB_Dataset"
-
+# dataset_path="/data/bdip2/an1979/UKB_Dataset"
+dataset_path="/data/bdip2/jbanusco/UKB_Cardiac_BIDS"
 # Code path
 code_path='/cluster/home/ja1659/Code/DLShapeAnalysis'
 
