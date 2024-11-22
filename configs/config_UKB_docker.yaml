@@ -30,3 +30,4 @@ params:
     wire_omega_0: 10.0
     skip_connections: True
     input_coord_to_all_layers: False
+    resume_checkpoint_path: "20241113-114143_Seg4DWholeImage_SAX_UKB/latest_checkpoint/epoch=164-step=82500.ckpt"

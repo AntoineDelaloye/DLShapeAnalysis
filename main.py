@@ -62,6 +62,7 @@ class Params:
     augmentations: Tuple[Tuple[str, Dict[str, Any]], ...] = ()
     # augmentations: Tuple[Tuple[str, Dict[str, Any]], ...] = ({"translation", {"x_lim": 0.25, "y_lim": 0.25}},
     #                                                          {"gamma", {"gamma_lim": (0.7, 1.4)}})
+    resume_checkpoint_path: str = None # Path from the log_dir if resuming training from previous trained weights
 
 
 def init_model(dataset, val_dataset, **params):
@@ -132,7 +133,10 @@ def main_train(config_path: Optional[str] = None, exp_name: Optional[str] = None
     trainer = pl.Trainer(max_epochs=params.max_epochs, accelerator=accel,
                          default_root_dir=root_dir, callbacks=[ckpt_latest_saver])
     start = datetime.now()
-    trainer.fit(model, train_dataloaders=train_dataloader)
+    if params.resume_checkpoint_path is not None:
+        trainer.fit(model, train_dataloaders=train_dataloader, ckpt_path=(Path(config["log_dir"]) / Path(params.resume_checkpoint_path)))
+    else:
+        trainer.fit(model, train_dataloaders=train_dataloader)
     print("Train elapsed time:", datetime.now() - start)
 
     # Save updated config to model dir
@@ -208,6 +212,7 @@ def main_eval(weights_path: str, config_path: Optional[str] = None):
                          enable_checkpointing=False, callbacks=[ValProgressBar()])
     trainer.fit(model, train_dataloaders=DataLoader(dataset, shuffle=False))
 
+# def only_eval(weights_path: str, config_path: Optional[str] = None):
 
 def parse_command_line():
     main_parser = argparse.ArgumentParser(description="Implicit Segmentation",
