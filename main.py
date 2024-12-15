@@ -6,6 +6,8 @@ from pathlib import Path
 import argparse
 import yaml
 import sys
+import nibabel as nib
+import numpy as np
 
 from torch.utils.data import DataLoader
 import torch
@@ -213,6 +215,62 @@ def main_eval(weights_path: str, config_path: Optional[str] = None):
     trainer.fit(model, train_dataloaders=DataLoader(dataset, shuffle=False))
 
 # def only_eval(weights_path: str, config_path: Optional[str] = None):
+def main_test(weights_path: str, config_path: str = None):
+
+    config = {"params": {}}
+    if config_path is not None:
+        with open(config_path, "r") as f:
+            config = yaml.safe_load(f)
+    params = Params(**config["params"])
+    weights_path = Path(config["log_dir"] + "/" + weights_path)
+    params = params.__dict__
+
+    if params["model_type"] == "separate":
+        model = ImplicitNetSeparateSegLatent.load_from_checkpoint(weights_path, **params)
+    elif params["model_type"] == "shared":
+        model = ImplicitNetSegLatent.load_from_checkpoint(weights_path, **params)
+    elif params["model_type"] == "mounted":
+        model = ImplicitNetMountedSegLatent.load_from_checkpoint(weights_path, **params)
+    else:
+        raise ValueError("Unknown model type.")
+    # sd = torch.load(weights_path)
+    # print(np.shape(sd["state_dict"]["h"]))
+    # patients_im, patients_seg,_ = find_SAX_images_test(config["test_data_dir"], patients)
+    dataset = Seg4DWholeImage_SAX_UKB_test(load_dir=config["test_data_dir"],
+                                       case_start_idx=config.get("test_start_idx", config["num_train"] + config["num_val"]),
+                                       num_cases=config["num_test"],
+                                       **params)
+    patients_im, patients_seg, _ = dataset.find_images()
+    # print("TEEEEEST", patients_im)
+    model.eval()
+    # print(np.shape(patients_seg))
+
+    for i in range(3):
+        if params["model_type"] == "separate":
+            reconstruction, segmentation = ImplicitNetSeparateSegLatent.calculate_rec_seg(model, im_idx=i, res_factors=(1,1,0.5))
+        elif params["model_type"] == "shared":
+            reconstruction, segmentation = ImplicitNetSegLatent.calculate_rec_seg(model, im_idx=i, res_factors=(1,1,0.5))
+        elif params["model_type"] == "mounted":
+            reconstruction, segmentation = ImplicitNetMountedSegLatent.calculate_rec_seg(model, im_idx=i)
+        else:
+            raise ValueError("Unknown model type.")
+        if not os.path.exists("results"):
+            os.mkdir("results")
+        nifti_seg = nib.Nifti1Image(segmentation, np.eye(4))
+        nib.save(nifti_seg, f"./results/segmentation{i}.nii.gz")
+        nifti_image = nib.Nifti1Image(reconstruction, np.eye(4))
+        nib.save(nifti_image, f"./results/reconstruction{i}.nii.gz")
+
+    # Save results
+    # print(np.shape(reconstruction))
+    
+    # print(np.shape(segmentation))
+    # nifti_seg = nib.Nifti1Image(segmentation, np.eye(4))
+    # nib.save(nifti_seg, "segmentation.nii.gz")
+
+    # nifti_image = nib.Nifti1Image(reconstruction, np.eye(4))
+    # nib.save(nifti_image, "reconstruction.nii.gz")
+
 
 def parse_command_line():
     main_parser = argparse.ArgumentParser(description="Implicit Segmentation",
@@ -236,17 +294,28 @@ def parse_command_line():
     parser_eval.add_argument("-w", "--weights",
                              help="path to the desired checkpoint .ckpt file meant for evaluation", required=True,
                              )
+
+    # Test only
+    parser_test = main_subparsers.add_parser("test")
+    parser_test.add_argument("-c", "--config",
+                                help="path to configuration yml file", required=False,
+                                default=r"/home/ajdelalo/projects/DLShapeAnalysis/configs/config_UKB.yaml"
+                                )
+    parser_test.add_argument("-w", "--weights",
+                                help="path to the desired checkpoint .ckpt file meant for testing", required=False,
+                                default="test_load/20241121-142501_Seg4DWholeImage_SAX_UKB/latest_checkpoint/epoch=11-step=24.ckpt"
+                                )
+    
     return main_parser.parse_args()
 
 
 if __name__ == '__main__':
     args = parse_command_line()
     if args.pipeline is None:
-        sys.argv.append("train")
+        sys.argv.append("test")
         args = parse_command_line()
-        config_path, exp_name = args.config, args.exp_name
-        weights_path, fine_tune_epochs = main_train(config_path, exp_name)
-        main_eval(weights_path, config_path)
+        config_path, weights = args.config, args.weights
+        main_test(weights, config_path)
     elif args.pipeline == "train":
         config_path, exp_name = args.config, args.exp_name
         weights_path, fine_tune_epochs = main_train(config_path, exp_name)
@@ -254,5 +323,8 @@ if __name__ == '__main__':
     elif args.pipeline == "eval":
         config_path, weights_path = args.config, args.weights
         main_eval(weights_path, config_path)
+    elif args.pipeline == "test":
+        weights_path, config_path = args.weights, args.config
+        main_test(weights_path, config_path)
     else:
         raise ValueError("Unknown pipeline selected.")

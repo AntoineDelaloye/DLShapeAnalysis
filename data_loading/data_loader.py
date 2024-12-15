@@ -19,10 +19,14 @@ class AbstractDataset(Dataset):
         self.im_paths, self.seg_paths, self.bboxes = self.find_images(**kwargs)
         num_cases = kwargs["num_cases"]
         assert num_cases > 0
-        self.x_ho_rate = kwargs.get("x_holdout_rate", 1)
-        self.y_ho_rate = kwargs.get("y_holdout_rate", 1)
-        self.z_ho_rate = kwargs.get("z_holdout_rate", 1)
-        self.t_ho_rate = kwargs.get("t_holdout_rate", 1)
+        # self.y_ho_rate = kwargs.get("y_holdout_rate", 1)
+        # self.z_ho_rate = kwargs.get("z_holdout_rate", 1)
+        # self.x_ho_rate = kwargs.get("x_holdout_rate", 1)
+        # self.t_ho_rate = kwargs.get("t_holdout_rate", 1)
+        self.x_ho_rate = 1
+        self.y_ho_rate = 1
+        self.z_ho_rate = 1
+        self.t_ho_rate = 1
         # If a side_length value was left as -1 by the user, use the max shape of that dimension instead
         self.out_shape = np.array(side_length)
         self.augs = self.parse_augmentations(augmentations)

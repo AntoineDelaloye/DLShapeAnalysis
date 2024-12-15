@@ -191,7 +191,35 @@ def find_SAX_images_UKB(load_dir: Union[str, Path], num_cases:int = -1, case_sta
     print(f"Found {count} cases in {elapsed//60}m {int(elapsed%60)}s.")
     return ims, segs, None
 
-    
+def find_SAX_images_test(load_dir: Union[str, Path], patient_IDs:str = None):
+    ims = []
+    segs = []
+    count = 0
+    start_time = time.time()
+    spcs = []
+    shapes = []
+
+    patients_list = os.listdir(Path(load_dir))
+    for i, patient_ID in enumerate(patients_list):
+        if not (os.path.exists(Path(load_dir) / patient_ID) and patient_ID in patient_IDs):
+            continue
+        im_path = Path(load_dir) / patient_ID / "anat" / f"{patient_ID}_img-short_axis_tp-2.nii.gz"
+        seg_path = Path(load_dir) / "derivatives" / "sa_segmentation" / patient_ID / f"{patient_ID}_sa_seg_all.nii.gz"
+        if not os.path.exists(im_path):
+            continue
+        if not os.path.exists(seg_path):
+            continue
+        im = nib.load(im_path)
+        shapes.append(im.shape)
+        spcs.append(im.header.get_zooms())
+        ims.append(im_path)
+        segs.append(seg_path)
+        count += 1
+    elapsed = time.time() - start_time
+    print(f"Found {count} cases in {elapsed//60}m {int(elapsed%60)}s.")
+    return ims, segs, None
+
+
 # find_SAX_images_UKB("C:/Users/touto/OneDrive/Documents/GitLab/DLShapeAnalysis/UKB_Dataset", num_cases=2, case_start_idx=2)
     # ims = []
     # segs = []

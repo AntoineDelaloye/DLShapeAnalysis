@@ -8,6 +8,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# nii files
+*.nii
+*.nii.gz
+results/
+
 # C extensions
 *.so
 

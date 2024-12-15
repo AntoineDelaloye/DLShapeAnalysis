@@ -583,6 +583,30 @@ class AbstractLatent(Abstract):
         return avg_score
 
     @torch.no_grad()
+    def calculate_rec_seg(self, im_idx, res_factors=(1, 1, 1)):
+        gt_im_vol, gt_seg_vol, raw_shape, t = self.dataset.load_and_undersample_nifti(im_idx)
+        print(np.shape(gt_im_vol), np.shape(gt_seg_vol))
+        shape_seg, shape_im = np.shape(gt_seg_vol), np.shape(gt_im_vol)
+        pred_im = np.empty((int(shape_im[0]*1/res_factors[0]), int(shape_im[1]*1/res_factors[1]), int(shape_im[2]*1/res_factors[2]), shape_im[3]))
+        pred_seg = np.empty((4, int(shape_seg[0]*1/res_factors[0]), int(shape_seg[1]*1/res_factors[1]), int(shape_seg[2]*1/res_factors[2]), shape_seg[3]))
+        pred_seg_final = np.empty((int(shape_seg[0]*1/res_factors[0]), int(shape_seg[1]*1/res_factors[1]), int(shape_seg[2]*1/res_factors[2]), shape_seg[3]))
+        print("shape segmentation", np.shape(gt_seg_vol))
+        print("shape test", pred_im.shape, pred_seg.shape)
+        for t in tqdm(range(0, gt_im_vol.shape[-1]), desc=f"Extract prediction of subject {im_idx}"):
+            gt_im = gt_im_vol[:, :, :, t]
+            gt_seg = gt_seg_vol[:, :, :, t]
+            gt_im = normalize_image(gt_im)
+            t_coord = t / raw_shape[-1]
+            pred_im[:,:,:,t], pred_seg[:,:,:,:,t] = self.evaluate_volume(gt_im.shape[:3], im_idx, res_factors, t_coord, as_numpy=True)
+            pred_seg_final[:,:,:,t] = np.argmax(pred_seg[:,:,:,:,t], axis=0)
+        return pred_im, pred_seg_final
+
+        # gt_im_vol, gt_seg_vol, raw_shape, t = self.dataset.load_and_undersample_nifti(im_idx)
+        # gt_im_vol = normalize_image(gt_im_vol)
+        # pred_im_vol, pred_seg_vol = self.evaluate_volume(gt_im_vol.shape[:3], im_idx, t, as_numpy=False)
+        # return gt_im_vol, pred_im_vol.cpu().numpy(), gt_seg_vol.cpu().numpy(), pred_seg_vol.cpu().numpy()
+
+    @torch.no_grad()
     def evaluate(self, coord_arr: torch.Tensor, h_vector: torch.Tensor, as_numpy: bool = True) \
             -> Union[Tuple[np.ndarray, np.ndarray], Tuple[torch.Tensor, torch.Tensor]]:
         assert coord_arr.shape[-1] == self.num_coord_dims
@@ -591,14 +615,15 @@ class AbstractLatent(Abstract):
         pred_im, pred_seg = self.forward(coord_arr[None], h_vector[None])
         if as_numpy:
             pred_im, pred_seg = pred_im.cpu().numpy(), pred_seg.cpu().numpy()
+        # print("shape test", pred_im[0].shape, pred_seg[0].shape, pred_seg[0,:,1,1,1])
         return pred_im[0], pred_seg[0]
 
-    def evaluate_volume(self, out_shape: Tuple[int, int, int], im_idx: int, t: float = 0.0, as_numpy: bool = True):
+    def evaluate_volume(self, out_shape: Tuple[int, int, int], im_idx: int, res_factors: float = (1,1,1), t: float = 0.0, as_numpy: bool = True):
         """ NOTE: torch.meshgrid has a different behaviour than np.meshgrid,
         using both interchangeably will produce transposed images. """
-        coords = torch.meshgrid(torch.arange(out_shape[0], dtype=torch.float32),
-                                torch.arange(out_shape[1], dtype=torch.float32),
-                                torch.arange(out_shape[2], dtype=torch.float32))
+        coords = torch.meshgrid(torch.arange(start=0, end=out_shape[0], step=res_factors[0], dtype=torch.float32),
+                                torch.arange(start=0, end=out_shape[1], step=res_factors[1], dtype=torch.float32),
+                                torch.arange(start=0, end=out_shape[2], step=res_factors[2], dtype=torch.float32))
         coords = [(c / out_shape[i]) for i, c in enumerate(coords)]
         if self.num_coord_dims == 4:
             t = torch.full_like(coords[0], t)
