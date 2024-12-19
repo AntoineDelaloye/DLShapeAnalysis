@@ -240,7 +240,7 @@ def main_test(weights_path: str, config_path: str = None):
                                        case_start_idx=config.get("test_start_idx", config["num_train"] + config["num_val"]),
                                        num_cases=config["num_test"],
                                        **params)
-    patients_im, patients_seg, _ = dataset.find_images()
+    # patients_im, patients_seg, _ = dataset.find_images()
     # print("TEEEEEST", patients_im)
     model.eval()
     # print(np.shape(patients_seg))
@@ -249,17 +249,17 @@ def main_test(weights_path: str, config_path: str = None):
         if params["model_type"] == "separate":
             reconstruction, segmentation = ImplicitNetSeparateSegLatent.calculate_rec_seg(model, im_idx=i, res_factors=(1,1,0.5))
         elif params["model_type"] == "shared":
-            reconstruction, segmentation = ImplicitNetSegLatent.calculate_rec_seg(model, im_idx=i, res_factors=(1,1,0.5))
+            reconstruction, segmentation = ImplicitNetSegLatent.calculate_rec_seg(model, im_idx=i, res_factors=(2,2,1))
         elif params["model_type"] == "mounted":
-            reconstruction, segmentation = ImplicitNetMountedSegLatent.calculate_rec_seg(model, im_idx=i)
+            reconstruction, segmentation = ImplicitNetMountedSegLatent.calculate_rec_seg(model, im_idx=i, res_factors=(1,1,0.5))
         else:
             raise ValueError("Unknown model type.")
-        if not os.path.exists("results"):
-            os.mkdir("results")
+        if not os.path.exists("results2"):
+            os.mkdir("results2")
         nifti_seg = nib.Nifti1Image(segmentation, np.eye(4))
-        nib.save(nifti_seg, f"./results/segmentation{i}.nii.gz")
+        nib.save(nifti_seg, f"./results2/segmentation{i}.nii.gz")
         nifti_image = nib.Nifti1Image(reconstruction, np.eye(4))
-        nib.save(nifti_image, f"./results/reconstruction{i}.nii.gz")
+        nib.save(nifti_image, f"./results2/reconstruction{i}.nii.gz")
 
     # Save results
     # print(np.shape(reconstruction))
@@ -303,7 +303,7 @@ def parse_command_line():
                                 )
     parser_test.add_argument("-w", "--weights",
                                 help="path to the desired checkpoint .ckpt file meant for testing", required=False,
-                                default="test_load/20241121-142501_Seg4DWholeImage_SAX_UKB/latest_checkpoint/epoch=11-step=24.ckpt"
+                                default="20241128-083257_Seg4DWholeImage_SAX_UKB/latest_checkpoint/epoch=808-step=404500.ckpt"
                                 )
     
     return main_parser.parse_args()

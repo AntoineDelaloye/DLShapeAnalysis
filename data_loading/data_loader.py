@@ -58,7 +58,7 @@ class AbstractDataset(Dataset):
             frame_seg_data = nii_seg.dataobj[
                              ::self.x_ho_rate, ::self.y_ho_rate, ::self.z_ho_rate, ::self.t_ho_rate].astype(np.uint8)
 
-        return frame_im_data, frame_seg_data, raw_shape, t_idx
+        return nii_img.dataobj[:].astype(np.uint8), nii_seg.dataobj[:].astype(np.uint8), raw_shape, t_idx
 
     @property
     def _augment(self):

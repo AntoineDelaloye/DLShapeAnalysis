@@ -7,7 +7,7 @@ num_val: 2
 test_data_dir: /home/ajdelalo/projects/DLShapeAnalysis/UKB_Dataset
 test_start_idx: 4
 num_test: 1
-log_dir: /home/ajdelalo/projects/DLSA_logs
+log_dir: /home/ajdelalo/projects/ClusterTrained
 
 params:
     initial_val: False
@@ -30,4 +30,4 @@ params:
     wire_omega_0: 10.0
     skip_connections: True
     input_coord_to_all_layers: False
-    resume_checkpoint_path: "20241108-145137_Seg4DWholeImage_SAX_UKB/latest_checkpoint/epoch=4-step=10.ckpt"
+    resume_checkpoint_path: "20241128-083257_Seg4DWholeImage_SAX_UKB/latest_checkpoint/epoch=808-step=404500.ckpt"
