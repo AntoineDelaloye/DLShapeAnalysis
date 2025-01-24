@@ -167,7 +167,7 @@ def find_SAX_images_UKB(load_dir: Union[str, Path], num_cases:int = -1, case_sta
     shapes = []
 
     patients = os.listdir(Path(load_dir))
-    patients = [i for i in patients if i.startswith('sub-')]
+    patients = sorted([i for i in patients if i.startswith('sub-')])
     for i, patientID in enumerate(patients):
         if i < case_start_idx:
             continue
@@ -189,7 +189,7 @@ def find_SAX_images_UKB(load_dir: Union[str, Path], num_cases:int = -1, case_sta
         raise ValueError(f"Did not find required amount of cases ({num_cases}) in directory: {load_dir}")
     elapsed = time.time() - start_time
     print(f"Found {count} cases in {elapsed//60}m {int(elapsed%60)}s.")
-    return ims, segs, None
+    return ims, segs, patients
 
 def find_SAX_images_test(load_dir: Union[str, Path], patient_IDs:str = None):
     ims = []

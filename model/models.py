@@ -583,7 +583,7 @@ class AbstractLatent(Abstract):
         return avg_score
 
     @torch.no_grad()
-    def calculate_rec_seg(self, im_idx, res_factors=(1, 1, 1)):
+    def calculate_rec_seg(self, im_idx, index_patient, res_factors=(1, 1, 1)):
         gt_im_vol, gt_seg_vol, raw_shape, t = self.dataset.load_and_undersample_nifti(im_idx)
         print(np.shape(gt_im_vol), np.shape(gt_seg_vol))
         shape_seg, shape_im = np.shape(gt_seg_vol), np.shape(gt_im_vol)
@@ -597,7 +597,7 @@ class AbstractLatent(Abstract):
             gt_seg = gt_seg_vol[:, :, :, t]
             gt_im = normalize_image(gt_im)
             t_coord = t / raw_shape[-1]
-            pred_im[:,:,:,t], pred_seg[:,:,:,:,t] = self.evaluate_volume(gt_im.shape[:3], im_idx, res_factors, t_coord, as_numpy=True)
+            pred_im[:,:,:,t], pred_seg[:,:,:,:,t] = self.evaluate_volume(gt_im.shape[:3], im_idx=index_patient, res_factors=res_factors, t=t_coord, as_numpy=True)
             pred_seg_final[:,:,:,t] = np.argmax(pred_seg[:,:,:,:,t], axis=0)
         return pred_im, pred_seg_final
 

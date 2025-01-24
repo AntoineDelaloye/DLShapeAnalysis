@@ -16,7 +16,7 @@ class AbstractDataset(Dataset):
         self.coord_noise_std = kwargs.get("coord_noise_std", 0.0)
         assert self.coord_noise_std >= 0.0
         self.load_dir = load_dir
-        self.im_paths, self.seg_paths, self.bboxes = self.find_images(**kwargs)
+        self.im_paths, self.seg_paths, self.patients = self.find_images(**kwargs)
         num_cases = kwargs["num_cases"]
         assert num_cases > 0
         # self.y_ho_rate = kwargs.get("y_holdout_rate", 1)
@@ -42,8 +42,9 @@ class AbstractDataset(Dataset):
         raise NotImplementedError("This is abstract class. Implement your own.")
 
     def load_and_undersample_nifti(self, img_idx, t: Optional[float] = None):
-        nii_img = nib.load(self.im_paths[img_idx])
-        nii_seg = nib.load(self.seg_paths[img_idx])
+        temp_im_paths, temp_seg_paths, patients = find_SAX_images_UKB(self.load_dir)
+        nii_img = nib.load(temp_im_paths[img_idx])
+        nii_seg = nib.load(temp_seg_paths[img_idx])
         raw_shape = nii_img.shape
         t_idx = None
         if t is not None:
