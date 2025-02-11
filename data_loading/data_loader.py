@@ -59,7 +59,8 @@ class AbstractDataset(Dataset):
             frame_seg_data = nii_seg.dataobj[
                              ::self.x_ho_rate, ::self.y_ho_rate, ::self.z_ho_rate, ::self.t_ho_rate].astype(np.uint8)
 
-        return nii_img.dataobj[:].astype(np.uint8), nii_seg.dataobj[:].astype(np.uint8), raw_shape, t_idx
+        # return nii_img.dataobj[:].astype(np.uint8), nii_seg.dataobj[:].astype(np.uint8), raw_shape, t_idx
+        return frame_im_data, frame_seg_data, raw_shape, t_idx
 
     @property
     def _augment(self):
@@ -293,11 +294,12 @@ class Seg4DWholeImage_SAX_UKB_test(Seg4DWholeImage):
     
     def find_images(self, **kwargs):
         return find_SAX_images_test(self.load_dir, **kwargs)
-class Seg4DWholeImage_SAX_test(Seg4DWholeImage_SAX):
-    @property
-    def _augment(self):
-        return False
+    
+# class Seg4DWholeImage_SAX_test(Seg4DWholeImage_SAX):
+#     @property
+#     def _augment(self):
+#         return False
 
-    @property
-    def add_coord_noise(self):
-        return False
+#     @property
+#     def add_coord_noise(self):
+#         return False
