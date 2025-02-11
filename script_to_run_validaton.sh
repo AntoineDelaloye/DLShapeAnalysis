@@ -26,6 +26,9 @@ code_path='/cluster/home/ja1659/Code/DLShapeAnalysis'
 logs_folder=${dataset_path}/derivatives/dl_shape_logs
 # mkdir -p ${logs_folder}
 
+# Checkpoint
+path_checkpoint='test_UKB/20241128-083257_Seg4DWholeImage_SAX_UKB/latest_checkpoint/epoch=808-step=404500.ckpt'
+
 # Docker mapping
 docker_data='/usr/data'
 docker_code='/usr/src'
@@ -36,4 +39,4 @@ singularity exec --nv \
 --bind ${dataset_path}:${docker_data} \
 --bind ${code_path}:${docker_code} \
 --bind ${logs_folder}:${docker_log} \
-${singularity_img} /bin/bash -c "cd ${docker_code} && python3 main.py eval --config configs/config_UKB_docker.yaml --exp_name eval_UKB"
+${singularity_img} /bin/bash -c "cd ${docker_code} && python3 main.py eval --config configs/config_UKB_docker.yaml --weights /usr/data/derivatives/dl_shape_logs/${path_checkpoint}"
