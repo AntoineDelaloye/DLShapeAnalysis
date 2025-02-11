@@ -42,7 +42,9 @@ class AbstractDataset(Dataset):
         raise NotImplementedError("This is abstract class. Implement your own.")
 
     def load_and_undersample_nifti(self, img_idx, t: Optional[float] = None):
-        temp_im_paths, temp_seg_paths, patients = find_SAX_images_UKB(self.load_dir)
+        # temp_im_paths, temp_seg_paths, patients = find_SAX_images_UKB(self.load_dir)
+        #TODO: Fix this - for the moment just a quick fix to run the evaluation
+        temp_im_paths, temp_seg_paths, patients = self.im_paths, self.seg_paths, self.patients
         nii_img = nib.load(temp_im_paths[img_idx])
         nii_seg = nib.load(temp_seg_paths[img_idx])
         raw_shape = nii_img.shape
@@ -293,7 +295,7 @@ class Seg4DWholeImage_SAX_UKB_test(Seg4DWholeImage):
         return False
     
     def find_images(self, **kwargs):
-        return find_SAX_images_test(self.load_dir, **kwargs)
+        self.im_paths, self.seg_paths, self.patients = find_SAX_images_test(self.load_dir, **kwargs)
     
 class Seg4DWholeImage_SAX_test(Seg4DWholeImage_SAX):
     @property
