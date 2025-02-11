@@ -1,7 +1,9 @@
 #!/bin/bash
 #SBATCH --job-name=dl_shape
-#SBATCH --output=/cluster/home/an1979/logs/dl_shape_%A_%a.out
-#SBATCH --error=/cluster/home/an1979/logs/dl_shape_%A_%a.err
+##SBATCH --output=/cluster/home/an1979/logs/dl_shape_%A_%a.out
+##SBATCH --error=/cluster/home/an1979/logs/dl_shape_%A_%a.err
+#SBATCH --output=/cluster/home/ja1659/logs/dl_shape_%A_%a.out
+#SBATCH --error=/cluster/home/ja1659/logs/dl_shape_%A_%a.err
 #SBATCH --time=24:00:00
 #SBATCH --mem=12G
 #SBATCH --cpus-per-task=12
