@@ -162,6 +162,7 @@ def find_SAX_images_UKB(load_dir: Union[str, Path], num_cases:int = -1, case_sta
     ims = []
     segs = []
     count = 0
+    patients_to_remove = []
     start_time = time.time()
     spcs = []
     shapes = []
@@ -170,14 +171,16 @@ def find_SAX_images_UKB(load_dir: Union[str, Path], num_cases:int = -1, case_sta
     patients = sorted([i for i in patients if i.startswith('sub-')])
     for i, patientID in enumerate(patients):
         if i < case_start_idx:
+            patients_to_remove.append(i)
             continue
         if num_cases > 0 and count >= num_cases:
+            patients_not_loaded = np.arange(count, len(patients), dtype=int).tolist()
+            patients_to_remove = patients_to_remove + patients_not_loaded
             break
         im_path = Path(load_dir) / patientID / "anat" / f"{patientID}_img-short_axis_tp-2.nii.gz"
         seg_path = Path(load_dir) / "derivatives" / "sa_segmentation" / patientID / f"{patientID}_sa_seg_all.nii.gz"
-        if not os.path.exists(im_path):
-            continue
-        if not os.path.exists(seg_path):
+        if not os.path.exists(im_path) or not os.path.exists(seg_path):
+            patients_to_remove.append(i)
             continue
         im = nib.load(im_path)
         shapes.append(im.shape)
@@ -187,27 +190,34 @@ def find_SAX_images_UKB(load_dir: Union[str, Path], num_cases:int = -1, case_sta
         count += 1
     if num_cases > 0 and count != num_cases:
         raise ValueError(f"Did not find required amount of cases ({num_cases}) in directory: {load_dir}")
+    
     elapsed = time.time() - start_time
     print(f"Found {count} cases in {elapsed//60}m {int(elapsed%60)}s.")
+    patients = [patient for i, patient in enumerate(patients) if i not in patients_to_remove]
     return ims, segs, patients
 
-def find_SAX_images_test(load_dir: Union[str, Path], patient_IDs:str = None):
+def find_SAX_images_test(load_dir: Union[str, Path], num_cases:int = -1, case_start_idx:int = 0, **kwargs):
     ims = []
     segs = []
     count = 0
+    patients_to_remove = []
     start_time = time.time()
     spcs = []
     shapes = []
 
-    patients_list = os.listdir(Path(load_dir))
-    for i, patient_ID in enumerate(patients_list):
-        if not (os.path.exists(Path(load_dir) / patient_ID) and patient_ID in patient_IDs):
-            continue
+    patients = os.listdir(Path(load_dir))
+    print(patients)
+    patients = sorted([i for i in patients if i.startswith('sub-')], reverse=True)
+    for i, patient_ID in enumerate(patients):
+        
+        if num_cases > 0 and count >= num_cases:
+            patients_not_loaded = np.arange(count, len(patients), dtype=int).tolist()
+            patients_to_remove = patients_to_remove + patients_not_loaded
+            break        
         im_path = Path(load_dir) / patient_ID / "anat" / f"{patient_ID}_img-short_axis_tp-2.nii.gz"
         seg_path = Path(load_dir) / "derivatives" / "sa_segmentation" / patient_ID / f"{patient_ID}_sa_seg_all.nii.gz"
-        if not os.path.exists(im_path):
-            continue
-        if not os.path.exists(seg_path):
+        if not os.path.exists(im_path) or not os.path.exists(seg_path):
+            patients_to_remove.append(i)
             continue
         im = nib.load(im_path)
         shapes.append(im.shape)
@@ -217,7 +227,8 @@ def find_SAX_images_test(load_dir: Union[str, Path], patient_IDs:str = None):
         count += 1
     elapsed = time.time() - start_time
     print(f"Found {count} cases in {elapsed//60}m {int(elapsed%60)}s.")
-    return ims, segs, None
+    patients = [patient for i, patient in enumerate(patients) if i not in patients_to_remove]
+    return ims, segs, patients
 
 
 # find_SAX_images_UKB("C:/Users/touto/OneDrive/Documents/GitLab/DLShapeAnalysis/UKB_Dataset", num_cases=2, case_start_idx=2)

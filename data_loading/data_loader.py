@@ -6,7 +6,7 @@ import random
 import numpy as np
 import nibabel as nib
 import cv2
-from utils import draw_mask_to_image, find_sax_ED_images, find_sax_images, normalize_image, square_image, find_SAX_images_UKB
+from utils import draw_mask_to_image, find_sax_ED_images, find_sax_images, normalize_image, square_image, find_SAX_images_UKB, find_SAX_images_test
 
 from data_loading.augmentations import TranslateCoords, RotateCoords, GammaShift
 
@@ -282,7 +282,7 @@ class Seg4DWholeImage_SAX_UKB(Seg4DWholeImage):
     def find_images(self, **kwargs):
         return find_SAX_images_UKB(self.load_dir, **kwargs)
     
-class Seg4DWholeImage_SAX_UKB_test(Seg4DWholeImage_SAX_UKB):
+class Seg4DWholeImage_SAX_UKB_test(Seg4DWholeImage):
     @property
     def _augment(self):
         return False
@@ -290,6 +290,9 @@ class Seg4DWholeImage_SAX_UKB_test(Seg4DWholeImage_SAX_UKB):
     @property
     def add_coord_noise(self):
         return False
+    
+    def find_images(self, **kwargs):
+        return find_SAX_images_test(self.load_dir, **kwargs)
 class Seg4DWholeImage_SAX_test(Seg4DWholeImage_SAX):
     @property
     def _augment(self):
