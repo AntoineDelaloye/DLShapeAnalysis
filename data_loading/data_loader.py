@@ -295,7 +295,7 @@ class Seg4DWholeImage_SAX_UKB_test(Seg4DWholeImage):
         return False
     
     def find_images(self, **kwargs):
-        self.im_paths, self.seg_paths, self.patients = find_SAX_images_test(self.load_dir, **kwargs)
+        return find_SAX_images_test(self.load_dir, **kwargs)
     
 class Seg4DWholeImage_SAX_test(Seg4DWholeImage_SAX):
     @property

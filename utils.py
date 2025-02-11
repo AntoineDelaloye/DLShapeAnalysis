@@ -207,7 +207,7 @@ def find_SAX_images_test(load_dir: Union[str, Path], num_cases:int = -1, case_st
     shapes = []
 
     patients = os.listdir(Path(load_dir))
-    print(patients)
+    # print(patients)
     patients = sorted([i for i in patients if i.startswith('sub-')], reverse=True)
     used_patients = []
     for i, patient_ID in enumerate(patients):
