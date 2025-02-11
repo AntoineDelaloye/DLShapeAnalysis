@@ -192,6 +192,7 @@ def find_SAX_images_UKB(load_dir: Union[str, Path], num_cases:int = -1, case_sta
         raise ValueError(f"Did not find required amount of cases ({num_cases}) in directory: {load_dir}")
     
     elapsed = time.time() - start_time
+    print('OH')
     print(f"Found {count} cases in {elapsed//60}m {int(elapsed%60)}s.")
     patients = [patient for i, patient in enumerate(patients) if i not in patients_to_remove]
     return ims, segs, patients
@@ -208,27 +209,31 @@ def find_SAX_images_test(load_dir: Union[str, Path], num_cases:int = -1, case_st
     patients = os.listdir(Path(load_dir))
     print(patients)
     patients = sorted([i for i in patients if i.startswith('sub-')], reverse=True)
+    used_patients = []
     for i, patient_ID in enumerate(patients):
         
         if num_cases > 0 and count >= num_cases:
-            patients_not_loaded = np.arange(count, len(patients), dtype=int).tolist()
-            patients_to_remove = patients_to_remove + patients_not_loaded
+            # patients_not_loaded = np.arange(count, len(patients), dtype=int).tolist()
+            # patients_to_remove = patients_to_remove + patients_not_loaded
             break        
         im_path = Path(load_dir) / patient_ID / "anat" / f"{patient_ID}_img-short_axis_tp-2.nii.gz"
         seg_path = Path(load_dir) / "derivatives" / "sa_segmentation" / patient_ID / f"{patient_ID}_sa_seg_all.nii.gz"
         if not os.path.exists(im_path) or not os.path.exists(seg_path):
-            patients_to_remove.append(i)
+            # patients_to_remove.append(i)
             continue
         im = nib.load(im_path)
         shapes.append(im.shape)
         spcs.append(im.header.get_zooms())
         ims.append(im_path)
         segs.append(seg_path)
+        used_patients.append(patient_ID)
         count += 1
+
     elapsed = time.time() - start_time
+    print('EH')
     print(f"Found {count} cases in {elapsed//60}m {int(elapsed%60)}s.")
-    patients = [patient for i, patient in enumerate(patients) if i not in patients_to_remove]
-    return ims, segs, patients
+    # patients = [patient for i, patient in enumerate(patients) if i not in patients_to_remove]
+    return ims, segs, used_patients
 
 
 # find_SAX_images_UKB("C:/Users/touto/OneDrive/Documents/GitLab/DLShapeAnalysis/UKB_Dataset", num_cases=2, case_start_idx=2)
