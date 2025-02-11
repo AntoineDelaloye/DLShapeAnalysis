@@ -6,7 +6,7 @@ val_start_idx: 700
 num_val: 50
 test_data_dir: /usr/data
 test_start_idx: 1000
-num_test: 100
+num_test: 50
 log_dir: /usr/logs
 
 params:
