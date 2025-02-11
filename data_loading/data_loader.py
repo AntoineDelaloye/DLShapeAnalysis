@@ -295,11 +295,11 @@ class Seg4DWholeImage_SAX_UKB_test(Seg4DWholeImage):
     def find_images(self, **kwargs):
         return find_SAX_images_test(self.load_dir, **kwargs)
     
-# class Seg4DWholeImage_SAX_test(Seg4DWholeImage_SAX):
-#     @property
-#     def _augment(self):
-#         return False
+class Seg4DWholeImage_SAX_test(Seg4DWholeImage_SAX):
+    @property
+    def _augment(self):
+        return False
 
-#     @property
-#     def add_coord_noise(self):
-#         return False
+    @property
+    def add_coord_noise(self):
+        return False
