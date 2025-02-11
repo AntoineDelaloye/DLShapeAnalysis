@@ -27,7 +27,8 @@ logs_folder=${dataset_path}/derivatives/dl_shape_logs
 # mkdir -p ${logs_folder}
 
 # Checkpoint
-path_checkpoint='test_UKB/20241128-083257_Seg4DWholeImage_SAX_UKB/latest_checkpoint/epoch=808-step=404500.ckpt'
+# path_checkpoint='test_UKB/20241128-083257_Seg4DWholeImage_SAX_UKB/latest_checkpoint/epoch=808-step=404500.ckpt'
+path_checkpoint='test_UKB/20241128-083257_Seg4DWholeImage_SAX_UKB/best_weights.pt'
 
 # Docker mapping
 docker_data='/usr/data'
