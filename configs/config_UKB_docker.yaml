@@ -3,7 +3,7 @@ train_start_idx: 0
 num_train: 500
 val_data_dir: /usr/data
 val_start_idx: 700
-num_val: 100
+num_val: 50
 test_data_dir: /usr/data
 test_start_idx: 1000
 num_test: 100

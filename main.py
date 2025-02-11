@@ -214,6 +214,11 @@ def main_eval(weights_path: str, config_path: Optional[str] = None):
                          enable_checkpointing=False, callbacks=[ValProgressBar()])
     trainer.fit(model, train_dataloaders=DataLoader(dataset, shuffle=False))
 
+    # Save the model somewhere
+    save_eval_path = os.path.join(source_dir, "evaluated_model.pt")
+    torch.save(model.state_dict(), save_eval_path)
+
+
 # def only_eval(weights_path: str, config_path: Optional[str] = None):
 def main_test(weights_path: str, config_path: str = None):
 
