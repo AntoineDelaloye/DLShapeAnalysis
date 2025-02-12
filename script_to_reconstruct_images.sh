@@ -29,7 +29,8 @@ logs_folder=${dataset_path}/derivatives/dl_shape_logs
 # Checkpoint
 # path_checkpoint='test_UKB/20241128-083257_Seg4DWholeImage_SAX_UKB/latest_checkpoint/epoch=808-step=404500.ckpt'
 # path_checkpoint='test_UKB/20241128-083257_Seg4DWholeImage_SAX_UKB/best_weights.pt'
-model_to_load=''test_UKB/20241128-083257_Seg4DWholeImage_SAX_UKB/evaluated_model.pt''
+# model_to_load='test_UKB/20241128-083257_Seg4DWholeImage_SAX_UKB/evaluated_model.pt'
+model_to_load='/usr/data/derivatives/DL_model/evaluated_model.pt'
 res_factor_z=1
 
 # Docker mapping

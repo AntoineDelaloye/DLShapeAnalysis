@@ -5,9 +5,11 @@
 #SBATCH --output=/cluster/home/ja1659/logs/dl_shape_%A_%a.out
 #SBATCH --error=/cluster/home/ja1659/logs/dl_shape_%A_%a.err
 #SBATCH --time=24:00:00
-#SBATCH --mem=12G
+#SBATCH --mem=20G
 #SBATCH --cpus-per-task=12
-#SBATCH --gres=gpu:1
+##SBATCH --gres=gpu:rtx6000:1
+#SBATCH --gres=gpu:rtxa6000:1
+##SBATCH --mem-per-gpu=20G
 #SBATCH --partition=rad
 #SBATCH --account=rad
 
