@@ -281,25 +281,28 @@ def main_test(weights_path: str, config_path: str = None, res_factor_z: float = 
 
     # index_list = [1,4,8]
     # index_list = [1,2,3,4]
-    for i in dataset.patients:
+    # for i in dataset.patients:
+    # for idx, patient in enumerate(dataset.patients):
+    for idx in range(0, len(dataset.patients)):
         # index_patient = np.squeeze([j for j in range(len(patients_list)) if patients_list[j] == localpatients_list[i]])
         # print(index_patient)
+        print(f"Processing patient {idx}")
         if params["model_type"] == "separate":
-            reconstruction, segmentation = ImplicitNetSeparateSegLatent.calculate_rec_seg(model, im_idx=i, index_patient=i, res_factors=(1,1,res_factor_z))
+            reconstruction, segmentation = ImplicitNetSeparateSegLatent.calculate_rec_seg(model, im_idx=idx, index_patient=idx, res_factors=(1,1,res_factor_z))
         elif params["model_type"] == "shared":
-            reconstruction, segmentation = ImplicitNetSegLatent.calculate_rec_seg(model, im_idx=i, index_patient=i, res_factors=(1,1,res_factor_z))
+            reconstruction, segmentation = ImplicitNetSegLatent.calculate_rec_seg(model, im_idx=idx, index_patient=idx, res_factors=(1,1,res_factor_z))
         elif params["model_type"] == "mounted":
-            reconstruction, segmentation = ImplicitNetMountedSegLatent.calculate_rec_seg(model, im_idx=i, index_patient=i, res_factors=(1,1,res_factor_z))
+            reconstruction, segmentation = ImplicitNetMountedSegLatent.calculate_rec_seg(model, im_idx=idx, index_patient=idx, res_factors=(1,1,res_factor_z))
         else:
             raise ValueError("Unknown model type.")
         
         # Save folder for each subject
-        patient_id = dataset.patients[i]
+        patient_id = dataset.patients[idx]
         save_path = os.path.join(data_dir_path, 'results_dl_shape_baseline', f"sub-{patient_id}")
         os.makedirs(save_path, exist_ok=True)
 
         # Update the affine transformation
-        nii_img = nib.load(dataset.im_paths[i])
+        nii_img = nib.load(dataset.im_paths[idx])
         pixdim_low_res = nii_img.header['pixdim'][1:4]  # Should work
         # pixdim_low_res = np.linalg.norm(nii_img.affine[:3, :3], axis=0)  # Alternative
         original_shape = nii_img.get_fdata().shape
