@@ -595,11 +595,11 @@ class AbstractLatent(Abstract):
             pred_im_vol, pred_seg_vol = self.evaluate_volume(gt_im_vol.shape[:3], im_idx, res_factors=res_factors, t=t_idx, as_numpy=True)
             pred_seg_vol = np.argmax(pred_seg_vol, axis=0)
             if i == 0:
-                pred_im = pred_im_vol
-                pred_seg = pred_seg_vol
+                pred_im = pred_im_vol[..., None]
+                pred_seg = pred_seg_vol[..., None]
             else:
-                pred_im = np.concatenate((pred_im, pred_im_vol), axis=-1)
-                pred_seg = np.concatenate((pred_seg, pred_seg_vol), axis=-1)
+                pred_im = np.concatenate((pred_im, pred_im_vol[..., None]), axis=-1)
+                pred_seg = np.concatenate((pred_seg, pred_seg_vol[..., None]), axis=-1)
         return pred_im, pred_seg
 
         # gt_im_vol, gt_seg_vol, raw_shape, t = self.dataset.load_and_undersample_nifti(im_idx)

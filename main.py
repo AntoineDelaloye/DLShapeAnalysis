@@ -307,6 +307,7 @@ def main_test(weights_path: str, config_path: str = None, res_factor_z: float = 
         # pixdim_low_res = np.linalg.norm(nii_img.affine[:3, :3], axis=0)  # Alternative
         original_shape = nii_img.get_fdata().shape
         new_shape = reconstruction.shape
+        print(f"Original shape: {original_shape}, New shape: {new_shape}")
         
         ratio_res = (np.asarray(new_shape) / np.asarray(original_shape))[:3]
         pixdim_high_res = pixdim_low_res / ratio_res
