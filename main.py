@@ -243,14 +243,17 @@ def main_test(weights_path: str, config_path: str = None, res_factor_z: float = 
     weights_path = Path(config["log_dir"] + "/" + weights_path)
     params = params.__dict__
 
-    if params["model_type"] == "separate":
-        model = ImplicitNetSeparateSegLatent.load_from_checkpoint(weights_path, **params)
-    elif params["model_type"] == "shared":
-        model = ImplicitNetSegLatent.load_from_checkpoint(weights_path, **params)
-    elif params["model_type"] == "mounted":
-        model = ImplicitNetMountedSegLatent.load_from_checkpoint(weights_path, **params)
-    else:
-        raise ValueError("Unknown model type.")
+    # if params["model_type"] == "separate":
+    #     model = ImplicitNetSeparateSegLatent.load_from_checkpoint(weights_path, **params)
+    # elif params["model_type"] == "shared":
+    #     model = ImplicitNetSegLatent.load_from_checkpoint(weights_path, **params)
+    # elif params["model_type"] == "mounted":
+    #     model = ImplicitNetMountedSegLatent.load_from_checkpoint(weights_path, **params)
+    # else:
+    #     raise ValueError("Unknown model type.")
+    
+    
+
     # sd = torch.load(weights_path)
     # print(np.shape(sd["state_dict"]["h"]))
     # patients_im, patients_seg,_ = find_SAX_images_test(config["test_data_dir"], patients)
@@ -259,6 +262,16 @@ def main_test(weights_path: str, config_path: str = None, res_factor_z: float = 
                                        case_start_idx=config.get("test_start_idx", config["num_train"] + config["num_val"]),
                                        num_cases=config["num_test"],
                                        **params)
+    
+    if params["model_type"] == "separate":
+        model = ImplicitNetSeparateSegLatent(dataset=dataset, split_name="test", **params)
+    elif params["model_type"] == "shared":
+        model = ImplicitNetSegLatent(dataset=dataset, split_name="test", **params)
+    elif params["model_type"] == "mounted":
+        model = ImplicitNetMountedSegLatent(dataset=dataset, split_name="test", **params)
+    else:
+        raise ValueError("Unknown model type.")
+    
     # patients_im, patients_seg, _ = dataset.find_images()
     # print("TEEEEEST", patients_im)
     model.eval()
