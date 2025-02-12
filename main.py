@@ -298,7 +298,8 @@ def main_test(weights_path: str, config_path: str = None, res_factor_z: float = 
         
         # Save folder for each subject
         patient_id = dataset.patients[idx]
-        save_path = os.path.join(data_dir_path, 'results_dl_shape_baseline', f"sub-{patient_id}")
+        # save_path = os.path.join(data_dir_path, 'results_dl_shape_baseline', f"sub-{patient_id}")
+        save_path = os.path.join('/usr/data', 'derivatives', 'DL_shape_baseline', f"sub-{patient_id}")
         os.makedirs(save_path, exist_ok=True)
 
         # Update the affine transformation
@@ -320,9 +321,11 @@ def main_test(weights_path: str, config_path: str = None, res_factor_z: float = 
         nifti_seg = nib.Nifti1Image(segmentation, new_affine)
         # nib.save(nifti_seg, f"./results3/segmentation_{dataset.patients[i]}.nii.gz")
         nib.save(nifti_seg, os.path.join(save_path, f"sub-{patient_id}_seg.nii.gz"))
+        print(f"Segmentation saved at {os.path.join(save_path, f'sub-{patient_id}_seg.nii.gz')}")
 
         nifti_image = nib.Nifti1Image(reconstruction, new_affine)
         nib.save(nifti_image, os.path.join(save_path, f"sub-{patient_id}_rec.nii.gz"))
+        print(f"Reconstruction saved at {os.path.join(save_path, f'sub-{patient_id}_rec.nii.gz')}")
         # nib.save(nifti_image, f"./results3/reconstruction_{dataset.patients[i]}.nii.gz")
 
     # Save results
