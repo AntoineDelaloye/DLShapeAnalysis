@@ -217,8 +217,19 @@ def main_eval(weights_path: str, config_path: Optional[str] = None):
     trainer.fit(model, train_dataloaders=DataLoader(dataset, shuffle=False))
 
     # Save the model somewhere
+    os.makedirs(source_dir, exist_ok=True)
     save_eval_path = os.path.join(source_dir, "evaluated_model.pt")
-    torch.save(model.state_dict(), save_eval_path)
+    try:        
+        torch.save(model.state_dict(), save_eval_path)
+    except:
+        print("Error saving model")
+        # Saving it in the data directory
+        print("Saving it in the data directory")
+        save_path = os.path.join(config["test_data_dir"], "derivatives", "DL_model")
+        print(save_path)
+        os.makedirs(save_path, exist_ok=True)
+        save_eval_path = os.path.join(save_path, "evaluated_model.pt")
+        torch.save(model.state_dict(), save_eval_path)
 
 
 # def only_eval(weights_path: str, config_path: Optional[str] = None):
@@ -276,7 +287,8 @@ def main_test(weights_path: str, config_path: str = None, res_factor_z: float = 
 
         # Update the affine transformation
         nii_img = nib.load(dataset.im_paths[i])
-        pixdim_low_res = nii_img.header['pixdim'][1:4]
+        pixdim_low_res = nii_img.header['pixdim'][1:4]  # Should work
+        # pixdim_low_res = np.linalg.norm(nii_img.affine[:3, :3], axis=0)  # Alternative
         original_shape = nii_img.get_fdata().shape
         new_shape = reconstruction.shape
         
@@ -290,7 +302,7 @@ def main_test(weights_path: str, config_path: str = None, res_factor_z: float = 
         nifti_seg = nib.Nifti1Image(segmentation, new_affine)
         # nib.save(nifti_seg, f"./results3/segmentation_{dataset.patients[i]}.nii.gz")
         nib.save(nifti_seg, os.path.join(save_path, f"sub-{patient_id}_seg.nii.gz"))
-        
+
         nifti_image = nib.Nifti1Image(reconstruction, new_affine)
         nib.save(nifti_image, os.path.join(save_path, f"sub-{patient_id}_rec.nii.gz"))
         # nib.save(nifti_image, f"./results3/reconstruction_{dataset.patients[i]}.nii.gz")

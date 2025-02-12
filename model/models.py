@@ -428,11 +428,11 @@ class AbstractLatent(Abstract):
                     title_prefix=f"Sample {i}'s ")
                 logger.experiment.add_figure(f"{self.split_name}_loss_curve_sample_{i}", fig,
                                              global_step=self.train_epoch)
-                if self.num_coord_dims == 4 and self.dataset is not None:
-                    vid = self.draw_time_video(i)
-                    logger.experiment.add_video(f"{self.split_name}_end_video_sample_{i}", vid[None], fps=10,
-                                                global_step=self.train_epoch)
-                    del vid
+                # if self.num_coord_dims == 4 and self.dataset is not None:
+                #     vid = self.draw_time_video(i)
+                #     logger.experiment.add_video(f"{self.split_name}_end_video_sample_{i}", vid[None], fps=10,
+                #                                 global_step=self.train_epoch)
+                #     del vid
 
         else:
             if self.num_coord_dims == 4 and self.dataset is not None:
