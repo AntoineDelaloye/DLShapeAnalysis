@@ -618,7 +618,7 @@ class AbstractLatent(Abstract):
         # print("shape test", pred_im[0].shape, pred_seg[0].shape, pred_seg[0,:,1,1,1])
         return pred_im[0], pred_seg[0]
 
-    def evaluate_volume(self, out_shape: Tuple[int, int, int], im_idx: int, res_factors: float = (1,1,1), t: float = 0.0, as_numpy: bool = True):
+    def evaluate_volume(self, out_shape: Tuple[int, int, int], im_idx: int, res_factors = (1,1,1), t: float = 0.0, as_numpy: bool = True):
         """ NOTE: torch.meshgrid has a different behaviour than np.meshgrid,
         using both interchangeably will produce transposed images. """
         coords = torch.meshgrid(torch.arange(start=0, end=out_shape[0], step=res_factors[0], dtype=torch.float32),

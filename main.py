@@ -222,7 +222,7 @@ def main_eval(weights_path: str, config_path: Optional[str] = None):
 
 
 # def only_eval(weights_path: str, config_path: Optional[str] = None):
-def main_test(weights_path: str, config_path: str = None):
+def main_test(weights_path: str, config_path: str = None, res_factor_z: float = 1.0):
 
     config = {"params": {}}
     if config_path is not None:
@@ -243,6 +243,7 @@ def main_test(weights_path: str, config_path: str = None):
     # sd = torch.load(weights_path)
     # print(np.shape(sd["state_dict"]["h"]))
     # patients_im, patients_seg,_ = find_SAX_images_test(config["test_data_dir"], patients)
+    data_dir_path = config["test_data_dir"]
     dataset = Seg4DWholeImage_SAX_UKB_test(load_dir=config["test_data_dir"],
                                        case_start_idx=config.get("test_start_idx", config["num_train"] + config["num_val"]),
                                        num_cases=config["num_test"],
@@ -260,19 +261,39 @@ def main_test(weights_path: str, config_path: str = None):
         # index_patient = np.squeeze([j for j in range(len(patients_list)) if patients_list[j] == localpatients_list[i]])
         # print(index_patient)
         if params["model_type"] == "separate":
-            reconstruction, segmentation = ImplicitNetSeparateSegLatent.calculate_rec_seg(model, im_idx=i, index_patient=i, res_factors=(1,1,0.5))
+            reconstruction, segmentation = ImplicitNetSeparateSegLatent.calculate_rec_seg(model, im_idx=i, index_patient=i, res_factors=(1,1,res_factor_z))
         elif params["model_type"] == "shared":
-            reconstruction, segmentation = ImplicitNetSegLatent.calculate_rec_seg(model, im_idx=i, index_patient=i, res_factors=(1,1,0.5))
+            reconstruction, segmentation = ImplicitNetSegLatent.calculate_rec_seg(model, im_idx=i, index_patient=i, res_factors=(1,1,res_factor_z))
         elif params["model_type"] == "mounted":
-            reconstruction, segmentation = ImplicitNetMountedSegLatent.calculate_rec_seg(model, im_idx=i, index_patient=i, res_factors=(1,1,0.5))
+            reconstruction, segmentation = ImplicitNetMountedSegLatent.calculate_rec_seg(model, im_idx=i, index_patient=i, res_factors=(1,1,res_factor_z))
         else:
             raise ValueError("Unknown model type.")
-        if not os.path.exists("results3"):
-            os.mkdir("results3")
-        nifti_seg = nib.Nifti1Image(segmentation, np.eye(4))
-        nib.save(nifti_seg, f"./results3/segmentation{dataset.patients[i]}.nii.gz")
-        nifti_image = nib.Nifti1Image(reconstruction, np.eye(4))
-        nib.save(nifti_image, f"./results3/reconstruction{dataset.patients[i]}.nii.gz")
+        
+        # Save folder for each subject
+        patient_id = dataset.patients[i]
+        save_path = os.path.join(data_dir_path, 'results_dl_shape_baseline', f"sub-{patient_id}")
+        os.makedirs(save_path, exist_ok=True)
+
+        # Update the affine transformation
+        nii_img = nib.load(dataset.im_paths[i])
+        pixdim_low_res = nii_img.header['pixdim'][1:4]
+        original_shape = nii_img.get_fdata().shape
+        new_shape = reconstruction.shape
+        
+        ratio_res = (np.asarray(new_shape) / np.asarray(original_shape))[:3]
+        pixdim_high_res = pixdim_low_res / ratio_res
+        
+        # Create the new affine transformation
+        new_affine = np.eye(4)
+        new_affine[:3, :3] = np.diag(pixdim_high_res)
+
+        nifti_seg = nib.Nifti1Image(segmentation, new_affine)
+        # nib.save(nifti_seg, f"./results3/segmentation_{dataset.patients[i]}.nii.gz")
+        nib.save(nifti_seg, os.path.join(save_path, f"sub-{patient_id}_seg.nii.gz"))
+        
+        nifti_image = nib.Nifti1Image(reconstruction, new_affine)
+        nib.save(nifti_image, os.path.join(save_path, f"sub-{patient_id}_rec.nii.gz"))
+        # nib.save(nifti_image, f"./results3/reconstruction_{dataset.patients[i]}.nii.gz")
 
     # Save results
     # print(np.shape(reconstruction))
@@ -318,6 +339,8 @@ def parse_command_line():
                                 help="path to the desired checkpoint .ckpt file meant for testing", required=False,
                                 default="20241128-083257_Seg4DWholeImage_SAX_UKB/latest_checkpoint/epoch=808-step=404500.ckpt"
                                 )
+    parser_test.add_argument("-r", "--res_factor_z", default=1.0, type=float, help="Resolution factor for the z axis. Default is 1.0.")
+
     
     return main_parser.parse_args()
 
@@ -337,7 +360,7 @@ if __name__ == '__main__':
         config_path, weights_path = args.config, args.weights
         main_eval(weights_path, config_path)
     elif args.pipeline == "test":
-        weights_path, config_path = args.weights, args.config
-        main_test(weights_path, config_path)
+        weights_path, config_path, res_factor_z = args.weights, args.config, args.res_factor_z
+        main_test(weights_path, config_path, res_factor_z)
     else:
         raise ValueError("Unknown pipeline selected.")
