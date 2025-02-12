@@ -44,7 +44,7 @@ class AbstractDataset(Dataset):
     def load_and_undersample_nifti(self, img_idx, t: Optional[float] = None):
         # temp_im_paths, temp_seg_paths, patients = find_SAX_images_UKB(self.load_dir)
         #TODO: Fix this - for the moment just a quick fix to run the evaluation
-        temp_im_paths, temp_seg_paths, patients = self.im_paths, self.seg_paths, self.patients
+        temp_im_paths, temp_seg_paths = self.im_paths, self.seg_paths
         nii_img = nib.load(temp_im_paths[img_idx])
         nii_seg = nib.load(temp_seg_paths[img_idx])
         raw_shape = nii_img.shape
@@ -52,14 +52,11 @@ class AbstractDataset(Dataset):
         if t is not None:
             assert isinstance(t, float)
             t_idx = int(t * raw_shape[-1]) % raw_shape[-1]
-            t_idx -= t_idx % self.t_ho_rate
-            frame_im_data = nii_img.dataobj[::self.x_ho_rate, ::self.y_ho_rate, ::self.z_ho_rate, t_idx]
-            frame_seg_data = nii_seg.dataobj[::self.x_ho_rate, ::self.y_ho_rate, ::self.z_ho_rate, t_idx].astype(np.uint8)
+            frame_im_data = nii_img.dataobj[:, :, :, t_idx]
+            frame_seg_data = nii_seg.dataobj[:, :, :, t_idx].astype(np.uint8)
         else:
-            frame_im_data = nii_img.dataobj[
-                            ::self.x_ho_rate, ::self.y_ho_rate, ::self.z_ho_rate, ::self.t_ho_rate]
-            frame_seg_data = nii_seg.dataobj[
-                             ::self.x_ho_rate, ::self.y_ho_rate, ::self.z_ho_rate, ::self.t_ho_rate].astype(np.uint8)
+            frame_im_data = nii_img.dataobj[:, :, :, :]
+            frame_seg_data = nii_seg.dataobj[:, :, :, :].astype(np.uint8)
 
         # return nii_img.dataobj[:].astype(np.uint8), nii_seg.dataobj[:].astype(np.uint8), raw_shape, t_idx
         return frame_im_data, frame_seg_data, raw_shape, t_idx

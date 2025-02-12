@@ -584,22 +584,22 @@ class AbstractLatent(Abstract):
 
     @torch.no_grad()
     def calculate_rec_seg(self, im_idx, index_patient, res_factors=(1, 1, 1)):
-        gt_im_vol, gt_seg_vol, raw_shape, t = self.dataset.load_and_undersample_nifti(im_idx)
-        print(np.shape(gt_im_vol), np.shape(gt_seg_vol))
-        shape_seg, shape_im = np.shape(gt_seg_vol), np.shape(gt_im_vol)
-        pred_im = np.empty((int(shape_im[0]*1/res_factors[0]), int(shape_im[1]*1/res_factors[1]), int(shape_im[2]*1/res_factors[2]), shape_im[3]))
-        pred_seg = np.empty((4, int(shape_seg[0]*1/res_factors[0]), int(shape_seg[1]*1/res_factors[1]), int(shape_seg[2]*1/res_factors[2]), shape_seg[3]))
-        pred_seg_final = np.empty((int(shape_seg[0]*1/res_factors[0]), int(shape_seg[1]*1/res_factors[1]), int(shape_seg[2]*1/res_factors[2]), shape_seg[3]))
-        print("shape segmentation", np.shape(gt_seg_vol))
-        print("shape test", pred_im.shape, pred_seg.shape)
-        for t in tqdm(range(0, gt_im_vol.shape[-1]), desc=f"Extract prediction of subject {im_idx}"):
-            gt_im = gt_im_vol[:, :, :, t]
-            gt_seg = gt_seg_vol[:, :, :, t]
-            gt_im = normalize_image(gt_im)
-            t_coord = t / raw_shape[-1]
-            pred_im[:,:,:,t], pred_seg[:,:,:,:,t] = self.evaluate_volume(gt_im.shape[:3], im_idx=index_patient, res_factors=res_factors, t=t_coord, as_numpy=True)
-            pred_seg_final[:,:,:,t] = np.argmax(pred_seg[:,:,:,:,t], axis=0)
-        return pred_im, pred_seg_final
+        raw_t_shape = 50
+        pred_im = []
+        pred_seg = []
+        for i in tqdm(range(0, raw_t_shape), desc=f"Extract prediction of subject {im_idx}"):
+            t_idx = i / raw_t_shape
+            gt_im_vol, gt_seg_vol, raw_shape, t = self.dataset.load_and_undersample_nifti(im_idx, t_idx)
+            gt_im_vol = normalize_image(gt_im_vol)
+            pred_im_vol, pred_seg_vol = self.evaluate_volume(gt_im_vol.shape[:3], im_idx, res_factors=res_factors, t=t_idx, as_numpy=True)
+            pred_seg_vol = np.argmax(pred_seg_vol, axis=0)
+            if i == 0:
+                pred_im = pred_im_vol
+                pred_seg = pred_seg_vol
+            else:
+                pred_im = np.concatenate((pred_im, pred_im_vol), axis=-1)
+                pred_seg = np.concatenate((pred_seg, pred_seg_vol), axis=-1)
+        return pred_im, pred_seg
 
         # gt_im_vol, gt_seg_vol, raw_shape, t = self.dataset.load_and_undersample_nifti(im_idx)
         # gt_im_vol = normalize_image(gt_im_vol)
