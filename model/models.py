@@ -616,7 +616,7 @@ class AbstractLatent(Abstract):
             gt_seg_1hot = to_1hot(torch.from_numpy(gt_seg_vol[None]))[0]
             non_class_dims = tuple(range(1, 4))
             print(non_class_dims)
-            dice = 1 - self.dice_loss(torch.FloatTensor(pred_seg_vol).round(), gt_seg_1hot).mean(non_class_dims)
+            dice = 1 - self.dice_loss(pred_seg_vol, gt_seg_1hot).mean(non_class_dims)
             print(f"Subject {im_idx} at t={t_idx} dice: {dice[1:].tolist()}")
 
         # # Compute the dice score
@@ -787,7 +787,8 @@ class ImplicitNetSegLatent(AbstractLatent, ImplicitNetSegPrior):
 
         # Segmentation dice (not trained on, assume not available at test time). Not added to overall loss here.
         with torch.no_grad():
-            dice = (1 - self.dice_loss(pred_seg.round(), to_1hot(seg_))).mean(0).squeeze().detach().cpu().tolist()
+            # dice = (1 - self.dice_loss(pred_seg.round(), to_1hot(seg_))).mean(0).squeeze().detach().cpu().tolist()
+            dice = (1 - self.dice_loss(pred_seg, to_1hot(seg_))).mean(0).squeeze().detach().cpu().tolist()
 
         # Regularization loss for h (and optionally network weights)
         loss_reg = None
