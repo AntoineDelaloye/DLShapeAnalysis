@@ -274,6 +274,9 @@ def main_test(weights_path: str, config_path: str = None, res_factor_z: float = 
     
     # patients_im, patients_seg, _ = dataset.find_images()
     # print("TEEEEEST", patients_im)
+    sd = torch.load(weights_path)
+    # del sd["h"]
+    model.load_state_dict(sd, strict=False)
     model.eval()
     # print(np.shape(patients_seg))
     # localpatients_list = os.listdir("/home/ajdelalo/projects/DLShapeAnalysis/UKB_Dataset")

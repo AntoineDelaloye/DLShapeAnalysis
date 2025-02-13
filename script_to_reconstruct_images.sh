@@ -43,4 +43,4 @@ singularity exec --nv \
 --bind ${dataset_path}:${docker_data} \
 --bind ${code_path}:${docker_code} \
 --bind ${logs_folder}:${docker_log} \
-${singularity_img} /bin/bash -c "cd ${docker_code} && python3 main.py test --config configs/config_UKB_docker.yaml --weights ${docker_log}/${path_checkpoint} --res_factor_z ${res_factor_z}"
+${singularity_img} /bin/bash -c "cd ${docker_code} && python3 main.py test --config configs/config_UKB_docker.yaml --weights ${model_to_load} --res_factor_z ${res_factor_z}"
