@@ -324,12 +324,12 @@ def main_test(weights_path: str, config_path: str = None, res_factor_z: float = 
 
         # Save the original image
         nifti_img = nib.Nifti1Image(gt_im_to_compare, old_affine)
-        nib.save(nifti_img, os.path.join(save_path, f"{patient_id}_im.nii.gz"))
+        nib.save(nifti_img, os.path.join(save_path, f"{patient_id}_im_gt.nii.gz"))
         
         # Save the original segmentation
         gt_seg_to_compare = np.array(gt_seg_to_compare, dtype=np.uint8)
         nifti_seg = nib.Nifti1Image(gt_seg_to_compare, old_affine)
-        nib.save(nifti_seg, os.path.join(save_path, f"{patient_id}_seg.nii.gz"))        
+        nib.save(nifti_seg, os.path.join(save_path, f"{patient_id}_seg_gt.nii.gz"))        
 
         # segmentation = np.array(segmentation, dtype=np.uint8)
         segmentation = np.array(segmentation, dtype=np.float32)
