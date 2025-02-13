@@ -592,6 +592,8 @@ class AbstractLatent(Abstract):
         gt_im_vol, gt_seg_vol, raw_shape, t = self.dataset.load_and_undersample_nifti(im_idx, 0.)
         pred_im = np.zeros(raw_shape)
         pred_seg = np.zeros(raw_shape)
+        gt_im_to_compare = np.zeros(raw_shape)
+        gt_seg_to_compare = np.zeros(raw_shape)
 
         for i in tqdm(range(0, raw_t_shape), desc=f"Extract prediction of subject {im_idx}"):
             t_idx = i / raw_t_shape
@@ -607,6 +609,8 @@ class AbstractLatent(Abstract):
             #     pred_seg = np.concatenate((pred_seg, pred_seg_[..., None]), axis=-1)
             pred_im[..., i] = pred_im_
             pred_seg[..., i] = pred_seg_
+            gt_im_to_compare[..., i] = gt_im_vol
+            gt_seg_to_compare[..., i] = gt_seg_vol
 
             gt_seg_1hot = to_1hot(torch.from_numpy(gt_seg_vol[None]))[0]
             non_class_dims = tuple(range(1, len(pred_seg.shape)))
@@ -616,7 +620,7 @@ class AbstractLatent(Abstract):
 
         # Compute the dice score
         for i_label in range(1, 4):
-            mask_label_gt = gt_seg_vol == i_label
+            mask_label_gt = gt_seg_to_compare == i_label
             mask_label_pred = pred_seg == i_label
             dice = 2 * np.sum(mask_label_gt * mask_label_pred) / (np.sum(mask_label_gt) + np.sum(mask_label_pred))
             # dice = 2 * np.sum(gt_seg_vol * pred_seg) / (np.sum(gt_seg_vol) + np.sum(pred_seg))
