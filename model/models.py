@@ -413,22 +413,23 @@ class AbstractLatent(Abstract):
         del fig
 
         if self.split_name == "test":
-            for i in range(len(self.history_dice_BG[0])):
-                final_dice_scores = self.calculate_volume_dice(i)
-                logger.experiment.add_scalar("Final_dice", np.mean(final_dice_scores))
-                logger.experiment.add_scalar("Final_dice_LV_Pool", final_dice_scores[0])
-                logger.experiment.add_scalar("Final_dice_LV_Myo", final_dice_scores[1])
-                logger.experiment.add_scalar("Final_dice_RV_Pool", final_dice_scores[2])
-                fig = self.draw_fit_plot(
-                    pixel_loss=[self.history_pixel_loss[t][i] for t in range(len(self.history_pixel_loss))],
-                    dice_BG=[self.history_dice_BG[t][i] for t in range(len(self.history_dice_BG))],
-                    dice_LV_Pool=[self.history_dice_LV_Pool[t][i] for t in range(len(self.history_dice_LV_Pool))],
-                    dice_LV_Myo=[self.history_dice_LV_Myo[t][i] for t in range(len(self.history_dice_LV_Myo))],
-                    dice_RV_Pool=[self.history_dice_RV_Pool[t][i] for t in range(len(self.history_dice_RV_Pool))],
-                    reg_loss=[self.history_reg_loss[t][i] for t in range(len(self.history_reg_loss))],
-                    title_prefix=f"Sample {i}'s ")
-                logger.experiment.add_figure(f"{self.split_name}_loss_curve_sample_{i}", fig,
-                                             global_step=self.train_epoch)
+            pass  # Skip the following for test set -- too long 
+            # for i in range(len(self.history_dice_BG[0])):
+            #     final_dice_scores = self.calculate_volume_dice(i)
+            #     logger.experiment.add_scalar("Final_dice", np.mean(final_dice_scores))
+            #     logger.experiment.add_scalar("Final_dice_LV_Pool", final_dice_scores[0])
+            #     logger.experiment.add_scalar("Final_dice_LV_Myo", final_dice_scores[1])
+            #     logger.experiment.add_scalar("Final_dice_RV_Pool", final_dice_scores[2])
+            #     fig = self.draw_fit_plot(
+            #         pixel_loss=[self.history_pixel_loss[t][i] for t in range(len(self.history_pixel_loss))],
+            #         dice_BG=[self.history_dice_BG[t][i] for t in range(len(self.history_dice_BG))],
+            #         dice_LV_Pool=[self.history_dice_LV_Pool[t][i] for t in range(len(self.history_dice_LV_Pool))],
+            #         dice_LV_Myo=[self.history_dice_LV_Myo[t][i] for t in range(len(self.history_dice_LV_Myo))],
+            #         dice_RV_Pool=[self.history_dice_RV_Pool[t][i] for t in range(len(self.history_dice_RV_Pool))],
+            #         reg_loss=[self.history_reg_loss[t][i] for t in range(len(self.history_reg_loss))],
+            #         title_prefix=f"Sample {i}'s ")
+            #     logger.experiment.add_figure(f"{self.split_name}_loss_curve_sample_{i}", fig,
+            #                                  global_step=self.train_epoch)
                 # if self.num_coord_dims == 4 and self.dataset is not None:
                 #     vid = self.draw_time_video(i)
                 #     logger.experiment.add_video(f"{self.split_name}_end_video_sample_{i}", vid[None], fps=10,
