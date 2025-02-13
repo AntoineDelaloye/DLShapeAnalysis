@@ -228,7 +228,7 @@ def main_eval(weights_path: str, config_path: Optional[str] = None):
         save_path = os.path.join(config["test_data_dir"], "derivatives", "DL_model")
         print(save_path)
         os.makedirs(save_path, exist_ok=True)
-        save_eval_path = os.path.join(save_path, "evaluated_model.pt")
+        save_eval_path = os.path.join(save_path, "evaluated_model_new.pt")
         torch.save(model.state_dict(), save_eval_path)
 
 
