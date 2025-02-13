@@ -145,7 +145,8 @@ class Abstract(pl.LightningModule):
             self.log(f"{self.split_name}/dice_loss", loss_seg_dice.mean().item())
 
             with torch.no_grad():
-                dice = 1 - self.dice_loss(pred_seg.round(), gt_seg_1hot).mean(non_class_dims)
+                # dice = 1 - self.dice_loss(pred_seg.round(), gt_seg_1hot).mean(non_class_dims)
+                dice = 1 - self.dice_loss(pred_seg, gt_seg_1hot).mean(non_class_dims)
                 dice = dice.cpu().tolist()
             self.log(f"{self.split_name}/dice_BG", dice[0], prog_bar=True)
             self.log(f"{self.split_name}/dice_LV_Pool", dice[1], prog_bar=True)
@@ -577,7 +578,8 @@ class AbstractLatent(Abstract):
 
             gt_seg_1hot = to_1hot(torch.from_numpy(gt_seg[None]))[0]
             non_class_dims = tuple(range(1, len(pred_seg.shape)))
-            dice = 1 - self.dice_loss(pred_seg.round(), gt_seg_1hot).mean(non_class_dims)
+            dice = 1 - self.dice_loss(pred_seg, gt_seg_1hot).mean(non_class_dims)
+            # dice = self.dice_loss(pred_seg, gt_seg_1hot).mean(non_class_dims)
             dices.append(dice[1:].tolist())
         avg_score = list(np.mean(np.array(dices), axis=0))
         assert len(avg_score) == 3
@@ -616,7 +618,8 @@ class AbstractLatent(Abstract):
             gt_seg_1hot = to_1hot(torch.from_numpy(gt_seg_vol[None]))[0]
             non_class_dims = tuple(range(1, 4))
             print(non_class_dims)
-            dice = 1 - self.dice_loss(pred_seg_vol, gt_seg_1hot).mean(non_class_dims)
+            # pred_seg_to_th = torch.FloatTensor(pred_seg_vol).to(self.device)
+            dice = 1 - self.dice_loss(torch.FloatTensor(pred_seg_vol), gt_seg_1hot).mean(non_class_dims)
             print(f"Subject {im_idx} at t={t_idx} dice: {dice[1:].tolist()}")
 
         # # Compute the dice score
