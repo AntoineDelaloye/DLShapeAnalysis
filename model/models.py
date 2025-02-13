@@ -592,17 +592,18 @@ class AbstractLatent(Abstract):
             t_idx = i / raw_t_shape
             gt_im_vol, gt_seg_vol, raw_shape, t = self.dataset.load_and_undersample_nifti(im_idx, t_idx)
             gt_im_vol = normalize_image(gt_im_vol)
-            pred_im_vol, pred_seg_vol = self.evaluate_volume(gt_im_vol.shape[:3], im_idx, res_factors=res_factors, t=t_idx, as_numpy=True)
-            pred_seg_vol = np.argmax(pred_seg_vol, axis=0)
+            pred_im_, pred_seg_vol = self.evaluate_volume(gt_im_vol.shape[:3], im_idx, res_factors=res_factors, t=t_idx, as_numpy=True)
+            pred_seg_ = np.argmax(pred_seg_vol, axis=0)
             if i == 0:
-                pred_im = pred_im_vol[..., None]
-                pred_seg = pred_seg_vol[..., None]
+                pred_im = pred_im_[..., None]
+                pred_seg = pred_seg_[..., None]
             else:
-                pred_im = np.concatenate((pred_im, pred_im_vol[..., None]), axis=-1)
-                pred_seg = np.concatenate((pred_seg, pred_seg_vol[..., None]), axis=-1)
+                pred_im = np.concatenate((pred_im, pred_im_[..., None]), axis=-1)
+                pred_seg = np.concatenate((pred_seg, pred_seg_[..., None]), axis=-1)
             gt_seg_1hot = to_1hot(torch.from_numpy(gt_seg_vol[None]))[0]
             non_class_dims = tuple(range(1, len(pred_seg.shape)))
-            dice = 1 - self.dice_loss(pred_seg.round(), gt_seg_1hot).mean(non_class_dims)
+            print(non_class_dims)
+            dice = 1 - self.dice_loss(pred_seg_vol.round(), gt_seg_1hot).mean(non_class_dims)
             print(f"Subject {im_idx} at t={t_idx} dice: {dice[1:].tolist()}")
         return pred_im, pred_seg
 
