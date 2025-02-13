@@ -630,7 +630,7 @@ class AbstractLatent(Abstract):
         print("shape test", pred_im.shape, pred_seg.shape)
         print(pred_seg.shape)
 
-        return pred_im, pred_seg
+        return pred_im, pred_seg, gt_im_to_compare, gt_seg_to_compare
 
         # gt_im_vol, gt_seg_vol, raw_shape, t = self.dataset.load_and_undersample_nifti(im_idx)
         # gt_im_vol = normalize_image(gt_im_vol)
