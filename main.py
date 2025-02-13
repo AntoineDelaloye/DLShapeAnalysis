@@ -322,6 +322,7 @@ def main_test(weights_path: str, config_path: str = None, res_factor_z: float = 
 
         # segmentation = np.array(segmentation, dtype=np.uint8)
         segmentation = np.array(segmentation, dtype=np.float32)
+        print(segmentation.shape)
         nifti_seg = nib.Nifti1Image(segmentation, new_affine)
         # nib.save(nifti_seg, f"./results3/segmentation_{dataset.patients[i]}.nii.gz")
         nib.save(nifti_seg, os.path.join(save_path, f"sub-{patient_id}_seg.nii.gz"))

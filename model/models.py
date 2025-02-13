@@ -612,9 +612,9 @@ class AbstractLatent(Abstract):
             pred_seg[..., i] = pred_seg_vol
             gt_im_to_compare[..., i] = gt_im_vol
             gt_seg_to_compare[..., i] = gt_seg_vol
-
+                
             gt_seg_1hot = to_1hot(torch.from_numpy(gt_seg_vol[None]))[0]
-            non_class_dims = tuple(range(1, len(pred_seg.shape)))
+            non_class_dims = tuple(range(1, 4))
             print(non_class_dims)
             dice = 1 - self.dice_loss(torch.FloatTensor(pred_seg_vol).round(), gt_seg_1hot).mean(non_class_dims)
             print(f"Subject {im_idx} at t={t_idx} dice: {dice[1:].tolist()}")
@@ -627,6 +627,8 @@ class AbstractLatent(Abstract):
         #     # dice = 2 * np.sum(gt_seg_vol * pred_seg) / (np.sum(gt_seg_vol) + np.sum(pred_seg))
         #     print(dice)
 
+        print("shape test", pred_im.shape, pred_seg.shape)
+        print(pred_seg.shape)
 
         return pred_im, pred_seg
 
