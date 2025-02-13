@@ -141,7 +141,8 @@ class Seg3DCropped(AbstractDataset):
 
         x, y, z = np.meshgrid(np.arange(img.shape[0], dtype=float),
                               np.arange(img.shape[1], dtype=float),
-                              np.arange(img.shape[2], dtype=float))
+                              np.arange(img.shape[2], dtype=float),
+                              indexing='ij')
         x = x / img.shape[0]
         y = y / img.shape[1]
         z = z / img.shape[2]
@@ -193,7 +194,8 @@ class Seg3DWholeImage(AbstractDataset):
 
         x, y, z = torch.meshgrid(torch.arange(img.shape[0], dtype=torch.float32),
                                  torch.arange(img.shape[1], dtype=torch.float32),
-                                 torch.arange(img.shape[2], dtype=torch.float32))
+                                 torch.arange(img.shape[2], dtype=torch.float32),
+                                 indexing='ij')
         x = x / img.shape[0]
         y = y / img.shape[1]
         z = z / img.shape[2]
@@ -250,7 +252,8 @@ class Seg4DWholeImage(AbstractDataset):
         try:
             x, y, z = torch.meshgrid(torch.arange(img.shape[0], dtype=torch.float32),
                                      torch.arange(img.shape[1], dtype=torch.float32),
-                                     torch.arange(img.shape[2], dtype=torch.float32))
+                                     torch.arange(img.shape[2], dtype=torch.float32),
+                                     indexing='ij')
         except IndexError as e:
             print(f"Raw shape: {raw_shape}, cropped shape: {frame_im_data.shape}, img_shape: {img.shape}")
             print(f"Img path: {self.im_paths[idx]}")
