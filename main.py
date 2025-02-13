@@ -195,11 +195,18 @@ def main_eval(weights_path: str, config_path: Optional[str] = None):
         raise ValueError("Unknown model type.")
 
     # Load trained model's weights
-    sd = torch.load(weights_path)
-    del sd["h"]
-    a = model.load_state_dict(sd, strict=False)
-    assert len(a.missing_keys) == 1 and a.missing_keys[0] == 'h'
-    assert len(a.unexpected_keys) == 0
+    save_path = os.path.join(config["test_data_dir"], "derivatives", "DL_model")
+    save_eval_path = os.path.join(save_path, "evaluated_model_new.pt")
+    if os.path.isfile(save_eval_path):
+        sd = torch.load(save_eval_path)
+        model.load_state_dict(sd)
+    else:
+        sd = torch.load(weights_path)
+        del sd["h"]
+        a = model.load_state_dict(sd, strict=False)
+        assert len(a.missing_keys) == 1 and a.missing_keys[0] == 'h'
+        assert len(a.unexpected_keys) == 0
+
     # Fine tune model
     if params["fine_tune_optimal_epochs"] > 0:
         max_epochs = params["fine_tune_optimal_epochs"]
@@ -218,7 +225,7 @@ def main_eval(weights_path: str, config_path: Optional[str] = None):
 
     # Save the model somewhere
     os.makedirs(source_dir, exist_ok=True)
-    save_eval_path = os.path.join(source_dir, "evaluated_model.pt")
+    save_eval_path = os.path.join(source_dir, "evaluated_model_new.pt")
     try:        
         torch.save(model.state_dict(), save_eval_path)
     except:
@@ -231,6 +238,70 @@ def main_eval(weights_path: str, config_path: Optional[str] = None):
         save_eval_path = os.path.join(save_path, "evaluated_model_new.pt")
         torch.save(model.state_dict(), save_eval_path)
 
+    for idx in range(0, len(dataset.patients)):
+        # index_patient = np.squeeze([j for j in range(len(patients_list)) if patients_list[j] == localpatients_list[i]])
+        # print(index_patient)
+        print(f"Processing patient {idx}")
+        
+        if params["model_type"] == "separate":
+            reconstruction, segmentation, gt_im_to_compare, gt_seg_to_compare = ImplicitNetSeparateSegLatent.calculate_rec_seg(model, im_idx=idx, index_patient=idx, res_factors=(1,1,res_factor_z))
+        elif params["model_type"] == "shared":
+            reconstruction, segmentation, gt_im_to_compare, gt_seg_to_compare = ImplicitNetSegLatent.calculate_rec_seg(model, im_idx=idx, index_patient=idx, res_factors=(1,1,res_factor_z))
+        elif params["model_type"] == "mounted":
+            reconstruction, segmentation, gt_im_to_compare, gt_seg_to_compare = ImplicitNetMountedSegLatent.calculate_rec_seg(model, im_idx=idx, index_patient=idx, res_factors=(1,1,res_factor_z))
+        else:
+            raise ValueError("Unknown model type.")
+        
+        # Save folder for each subject
+        patient_id = dataset.patients[idx]
+        # save_path = os.path.join(data_dir_path, 'results_dl_shape_baseline', f"sub-{patient_id}")
+        save_path = os.path.join('/usr/data', 'derivatives', 'DL_shape_baseline', f"{patient_id}")
+        os.makedirs(save_path, exist_ok=True)
+
+        # Update the affine transformation
+        nii_img = nib.load(dataset.im_paths[idx])
+        pixdim_low_res = nii_img.header['pixdim'][1:4]  # Should work
+        # pixdim_low_res = np.linalg.norm(nii_img.affine[:3, :3], axis=0)  # Alternative
+        original_shape = nii_img.get_fdata().shape
+        new_shape = reconstruction.shape
+        print(f"Original shape: {original_shape}, New shape: {new_shape}")
+        
+        ratio_res = (np.asarray(new_shape) / np.asarray(original_shape))[:3]
+        pixdim_high_res = pixdim_low_res / ratio_res
+        
+        # Create the new affine transformation
+        old_affine = np.eye(4)
+        old_affine[:3, :3] = np.diag(pixdim_low_res)
+        new_affine = np.eye(4)
+        new_affine[:3, :3] = np.diag(pixdim_high_res)
+
+        # Save the original image
+        nifti_img = nib.Nifti1Image(gt_im_to_compare, old_affine)
+        nib.save(nifti_img, os.path.join(save_path, f"{patient_id}_im_gt.nii.gz"))
+        
+        # Save the original segmentation
+        gt_seg_to_compare = np.array(gt_seg_to_compare, dtype=np.uint8)
+        nifti_seg = nib.Nifti1Image(gt_seg_to_compare, old_affine)
+        nib.save(nifti_seg, os.path.join(save_path, f"{patient_id}_seg_gt.nii.gz"))        
+
+        # segmentation = np.array(segmentation, dtype=np.uint8)
+        segmentation = np.array(segmentation, dtype=np.float32)
+        print(segmentation.shape)
+        nifti_seg = nib.Nifti1Image(segmentation, new_affine)
+        # nib.save(nifti_seg, f"./results3/segmentation_{dataset.patients[i]}.nii.gz")
+        nib.save(nifti_seg, os.path.join(save_path, f"{patient_id}_seg_prob.nii.gz"))
+        print(f"Segmentation saved at {os.path.join(save_path, f'{patient_id}_seg_prob.nii.gz')}")
+        
+        # Save the final segmentation
+        seg_pred_final = np.argmax(segmentation, axis=0)
+        seg_pred_final = np.array(seg_pred_final, dtype=np.uint8)
+        nifti_seg = nib.Nifti1Image(seg_pred_final, new_affine)
+        nib.save(nifti_seg, os.path.join(save_path, f"{patient_id}_seg.nii.gz"))
+
+        nifti_image = nib.Nifti1Image(reconstruction, new_affine)
+        nib.save(nifti_image, os.path.join(save_path, f"{patient_id}_rec.nii.gz"))
+        print(f"Reconstruction saved at {os.path.join(save_path, f'{patient_id}_rec.nii.gz')}")
+        # nib.save(nifti_image, f"./results3/reconstruction_{dataset.patients[i]}.nii.gz")
 
 # def only_eval(weights_path: str, config_path: Optional[str] = None):
 def main_test(weights_path: str, config_path: str = None, res_factor_z: float = 1.0):
