@@ -240,7 +240,7 @@ def main_test(weights_path: str, config_path: str = None, res_factor_z: float = 
         with open(config_path, "r") as f:
             config = yaml.safe_load(f)
     params = Params(**config["params"])
-    weights_path = Path(config["log_dir"] + "/" + weights_path)
+    # weights_path = Path(config["log_dir"] + "/" + weights_path)
     params = params.__dict__
 
     # if params["model_type"] == "separate":
@@ -276,7 +276,7 @@ def main_test(weights_path: str, config_path: str = None, res_factor_z: float = 
     # print("TEEEEEST", patients_im)
     sd = torch.load(weights_path)
     # del sd["h"]
-    model.load_state_dict(sd, strict=False)
+    model.load_state_dict(sd)
     model.eval()
     # print(np.shape(patients_seg))
     # localpatients_list = os.listdir("/home/ajdelalo/projects/DLShapeAnalysis/UKB_Dataset")

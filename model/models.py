@@ -600,6 +600,10 @@ class AbstractLatent(Abstract):
             else:
                 pred_im = np.concatenate((pred_im, pred_im_vol[..., None]), axis=-1)
                 pred_seg = np.concatenate((pred_seg, pred_seg_vol[..., None]), axis=-1)
+            gt_seg_1hot = to_1hot(torch.from_numpy(gt_seg_vol[None]))[0]
+            non_class_dims = tuple(range(1, len(pred_seg.shape)))
+            dice = 1 - self.dice_loss(pred_seg.round(), gt_seg_1hot).mean(non_class_dims)
+            print(f"Subject {im_idx} at t={t_idx} dice: {dice[1:].tolist()}")
         return pred_im, pred_seg
 
         # gt_im_vol, gt_seg_vol, raw_shape, t = self.dataset.load_and_undersample_nifti(im_idx)
