@@ -614,6 +614,15 @@ class AbstractLatent(Abstract):
             dice = 1 - self.dice_loss(torch.FloatTensor(pred_seg_vol).round(), gt_seg_1hot).mean(non_class_dims)
             print(f"Subject {im_idx} at t={t_idx} dice: {dice[1:].tolist()}")
 
+        # Compute the dice score
+        for i_label in range(1, 4):
+            mask_label_gt = gt_seg_vol == i_label
+            mask_label_pred = pred_seg == i_label
+            dice = 2 * np.sum(mask_label_gt * mask_label_pred) / (np.sum(mask_label_gt) + np.sum(mask_label_pred))
+            # dice = 2 * np.sum(gt_seg_vol * pred_seg) / (np.sum(gt_seg_vol) + np.sum(pred_seg))
+            print(dice)
+
+
         return pred_im, pred_seg
 
         # gt_im_vol, gt_seg_vol, raw_shape, t = self.dataset.load_and_undersample_nifti(im_idx)
