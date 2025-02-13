@@ -586,25 +586,34 @@ class AbstractLatent(Abstract):
     @torch.no_grad()
     def calculate_rec_seg(self, im_idx, index_patient, res_factors=(1, 1, 1)):
         raw_t_shape = 50
-        pred_im = []
-        pred_seg = []
+        # pred_im = []
+        # pred_seg = []
+
+        gt_im_vol, gt_seg_vol, raw_shape, t = self.dataset.load_and_undersample_nifti(im_idx, 0)
+        pred_im = np.zeros(raw_shape)
+        pred_seg = np.zeros(raw_shape)
+
         for i in tqdm(range(0, raw_t_shape), desc=f"Extract prediction of subject {im_idx}"):
             t_idx = i / raw_t_shape
             gt_im_vol, gt_seg_vol, raw_shape, t = self.dataset.load_and_undersample_nifti(im_idx, t_idx)
             gt_im_vol = normalize_image(gt_im_vol)
             pred_im_, pred_seg_vol = self.evaluate_volume(gt_im_vol.shape[:3], im_idx, res_factors=res_factors, t=t_idx, as_numpy=True)
             pred_seg_ = np.argmax(pred_seg_vol, axis=0)
-            if i == 0:
-                pred_im = pred_im_[..., None]
-                pred_seg = pred_seg_[..., None]
-            else:
-                pred_im = np.concatenate((pred_im, pred_im_[..., None]), axis=-1)
-                pred_seg = np.concatenate((pred_seg, pred_seg_[..., None]), axis=-1)
+            # if i == 0:
+            #     pred_im = pred_im_[..., None]
+            #     pred_seg = pred_seg_[..., None]
+            # else:
+            #     pred_im = np.concatenate((pred_im, pred_im_[..., None]), axis=-1)
+            #     pred_seg = np.concatenate((pred_seg, pred_seg_[..., None]), axis=-1)
+            pred_im[..., i] = pred_im_
+            pred_seg[..., i] = pred_seg_
+
             gt_seg_1hot = to_1hot(torch.from_numpy(gt_seg_vol[None]))[0]
             non_class_dims = tuple(range(1, len(pred_seg.shape)))
             print(non_class_dims)
-            dice = 1 - self.dice_loss(pred_seg_vol.round(), gt_seg_1hot).mean(non_class_dims)
+            dice = 1 - self.dice_loss(torch.FloatTensor(pred_seg_vol).round(), gt_seg_1hot).mean(non_class_dims)
             print(f"Subject {im_idx} at t={t_idx} dice: {dice[1:].tolist()}")
+
         return pred_im, pred_seg
 
         # gt_im_vol, gt_seg_vol, raw_shape, t = self.dataset.load_and_undersample_nifti(im_idx)
