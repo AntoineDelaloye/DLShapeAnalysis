@@ -589,7 +589,7 @@ class AbstractLatent(Abstract):
         # pred_im = []
         # pred_seg = []
 
-        gt_im_vol, gt_seg_vol, raw_shape, t = self.dataset.load_and_undersample_nifti(im_idx, 0)
+        gt_im_vol, gt_seg_vol, raw_shape, t = self.dataset.load_and_undersample_nifti(im_idx, 0.)
         pred_im = np.zeros(raw_shape)
         pred_seg = np.zeros(raw_shape)
 
