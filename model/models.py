@@ -591,7 +591,8 @@ class AbstractLatent(Abstract):
 
         gt_im_vol, gt_seg_vol, raw_shape, t = self.dataset.load_and_undersample_nifti(im_idx, 0.)
         pred_im = np.zeros(raw_shape)
-        pred_seg = np.zeros(raw_shape)
+        # pred_seg = np.zeros(raw_shape)
+        pred_seg = np.zeros((self.num_classes, *raw_shape))
         gt_im_to_compare = np.zeros(raw_shape)
         gt_seg_to_compare = np.zeros(raw_shape)
 
@@ -600,7 +601,7 @@ class AbstractLatent(Abstract):
             gt_im_vol, gt_seg_vol, raw_shape, t = self.dataset.load_and_undersample_nifti(im_idx, t_idx)
             gt_im_vol = normalize_image(gt_im_vol)
             pred_im_, pred_seg_vol = self.evaluate_volume(gt_im_vol.shape[:3], im_idx, res_factors=res_factors, t=t_idx, as_numpy=True)
-            pred_seg_ = np.argmax(pred_seg_vol, axis=0)
+            # pred_seg_ = np.argmax(pred_seg_vol, axis=0)
             # if i == 0:
             #     pred_im = pred_im_[..., None]
             #     pred_seg = pred_seg_[..., None]
@@ -608,7 +609,7 @@ class AbstractLatent(Abstract):
             #     pred_im = np.concatenate((pred_im, pred_im_[..., None]), axis=-1)
             #     pred_seg = np.concatenate((pred_seg, pred_seg_[..., None]), axis=-1)
             pred_im[..., i] = pred_im_
-            pred_seg[..., i] = pred_seg_
+            pred_seg[..., i] = pred_seg_vol
             gt_im_to_compare[..., i] = gt_im_vol
             gt_seg_to_compare[..., i] = gt_seg_vol
 
@@ -618,13 +619,13 @@ class AbstractLatent(Abstract):
             dice = 1 - self.dice_loss(torch.FloatTensor(pred_seg_vol).round(), gt_seg_1hot).mean(non_class_dims)
             print(f"Subject {im_idx} at t={t_idx} dice: {dice[1:].tolist()}")
 
-        # Compute the dice score
-        for i_label in range(1, 4):
-            mask_label_gt = gt_seg_to_compare == i_label
-            mask_label_pred = pred_seg == i_label
-            dice = 2 * np.sum(mask_label_gt * mask_label_pred) / (np.sum(mask_label_gt) + np.sum(mask_label_pred))
-            # dice = 2 * np.sum(gt_seg_vol * pred_seg) / (np.sum(gt_seg_vol) + np.sum(pred_seg))
-            print(dice)
+        # # Compute the dice score
+        # for i_label in range(1, 4):
+        #     mask_label_gt = gt_seg_to_compare == i_label
+        #     mask_label_pred = pred_seg == i_label
+        #     dice = 2 * np.sum(mask_label_gt * mask_label_pred) / (np.sum(mask_label_gt) + np.sum(mask_label_pred))
+        #     # dice = 2 * np.sum(gt_seg_vol * pred_seg) / (np.sum(gt_seg_vol) + np.sum(pred_seg))
+        #     print(dice)
 
 
         return pred_im, pred_seg
