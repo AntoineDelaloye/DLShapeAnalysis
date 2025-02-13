@@ -661,7 +661,8 @@ class AbstractLatent(Abstract):
         using both interchangeably will produce transposed images. """
         coords = torch.meshgrid(torch.arange(start=0, end=out_shape[0], step=res_factors[0], dtype=torch.float32),
                                 torch.arange(start=0, end=out_shape[1], step=res_factors[1], dtype=torch.float32),
-                                torch.arange(start=0, end=out_shape[2], step=res_factors[2], dtype=torch.float32))
+                                torch.arange(start=0, end=out_shape[2], step=res_factors[2], dtype=torch.float32),
+                                indexing='ij')
         coords = [(c / out_shape[i]) for i, c in enumerate(coords)]
         if self.num_coord_dims == 4:
             t = torch.full_like(coords[0], t)
@@ -679,7 +680,9 @@ class AbstractLatent(Abstract):
                                   ) -> np.array:
         # Create meshgrid (coordinates same for every dimension)
         assert len(out_shape) == 2
-        coords = torch.meshgrid(torch.arange(out_shape[0], dtype=torch.float32), torch.arange(out_shape[1], dtype=torch.float32))
+        coords = torch.meshgrid(torch.arange(out_shape[0], dtype=torch.float32), 
+                                torch.arange(out_shape[1], dtype=torch.float32),
+                                indexing='ij')
 
         # Figure out which dimension the user wants filled with a constant
         count = 0
