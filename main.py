@@ -195,17 +195,17 @@ def main_eval(weights_path: str, config_path: Optional[str] = None):
         raise ValueError("Unknown model type.")
 
     # Load trained model's weights
-    save_path = os.path.join(config["test_data_dir"], "derivatives", "DL_model")
-    save_eval_path = os.path.join(save_path, "evaluated_model_new.pt")
-    if os.path.isfile(save_eval_path):
-        sd = torch.load(save_eval_path)
-        model.load_state_dict(sd)
-    else:
-        sd = torch.load(weights_path)
-        del sd["h"]
-        a = model.load_state_dict(sd, strict=False)
-        assert len(a.missing_keys) == 1 and a.missing_keys[0] == 'h'
-        assert len(a.unexpected_keys) == 0
+    # save_path = os.path.join(config["test_data_dir"], "derivatives", "DL_model")
+    # save_eval_path = os.path.join(save_path, "evaluated_model_new.pt")
+    # if os.path.isfile(save_eval_path):
+    #     sd = torch.load(save_eval_path)
+    #     model.load_state_dict(sd)
+    # else:
+    sd = torch.load(weights_path)
+    del sd["h"]
+    a = model.load_state_dict(sd, strict=False)
+    assert len(a.missing_keys) == 1 and a.missing_keys[0] == 'h'
+    assert len(a.unexpected_keys) == 0
 
     # Fine tune model
     if params["fine_tune_optimal_epochs"] > 0:
@@ -225,7 +225,7 @@ def main_eval(weights_path: str, config_path: Optional[str] = None):
 
     # Save the model somewhere
     os.makedirs(source_dir, exist_ok=True)
-    save_eval_path = os.path.join(source_dir, "evaluated_model_new.pt")
+    save_eval_path = os.path.join(source_dir, "evaluated_model_final.pt")
     try:        
         torch.save(model.state_dict(), save_eval_path)
     except:
@@ -235,7 +235,7 @@ def main_eval(weights_path: str, config_path: Optional[str] = None):
         save_path = os.path.join(config["test_data_dir"], "derivatives", "DL_model")
         print(save_path)
         os.makedirs(save_path, exist_ok=True)
-        save_eval_path = os.path.join(save_path, "evaluated_model_new.pt")
+        save_eval_path = os.path.join(save_path, "evaluated_model_final.pt")
         torch.save(model.state_dict(), save_eval_path)
 
     for idx in range(0, len(dataset.patients)):
