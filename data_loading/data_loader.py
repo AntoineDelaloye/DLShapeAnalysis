@@ -17,8 +17,8 @@ class AbstractDataset(Dataset):
         assert self.coord_noise_std >= 0.0
         self.load_dir = load_dir
         self.im_paths, self.seg_paths, self.patients = self.find_images(**kwargs)
-        num_cases = kwargs["num_cases"]
-        assert num_cases > 0
+        # num_cases = kwargs["num_cases"]
+        # assert num_cases > 0
         # self.y_ho_rate = kwargs.get("y_holdout_rate", 1)
         # self.z_ho_rate = kwargs.get("z_holdout_rate", 1)
         # self.x_ho_rate = kwargs.get("x_holdout_rate", 1)

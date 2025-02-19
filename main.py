@@ -101,18 +101,24 @@ def main_train(config_path: Optional[str] = None, exp_name: Optional[str] = None
     root_dir = Path(config["log_dir"])
 
     # Dataset
+    # Test change :
     dataset = Seg4DWholeImage_SAX_UKB(load_dir=config["train_data_dir"],
-                                  case_start_idx=config.get("train_start_idx", 0),
-                                  num_cases=config["num_train"],
-                                  **params.__dict__)
+                                      split_file=config.get("split_file", None),
+                                      mode=config["mode"],
+                                      **params.__dict__)
+
+    # dataset = Seg4DWholeImage_SAX_UKB(load_dir=config["train_data_dir"],
+    #                               case_start_idx=config.get("train_start_idx", 0),
+    #                               num_cases=config["num_train"],
+    #                               **params.__dict__)
     coord_dimensions = dataset.sample_coords.shape[-1]
     assert coord_dimensions == len(params.side_length)
     train_dataloader = DataLoader(dataset, shuffle=True)
 
-    val_dataset = Seg4DWholeImage_SAX_UKB_test(load_dir=config["val_data_dir"],
-                                           case_start_idx=config.get("val_start_idx", config["num_train"]),
-                                           num_cases=config["num_val"],
-                                           **params.__dict__)
+    val_dataset = Seg4DWholeImage_SAX_UKB(load_dir=config["val_data_dir"],
+                                          split_file=config.get("split_file", None),
+                                          mode="val",
+                                          **params.__dict__)
     # Model dir creation
     if exp_name is not None:
         root_dir = root_dir / exp_name
@@ -440,7 +446,7 @@ def parse_command_line():
     parser_train = main_subparsers.add_parser("train")
     parser_train.add_argument("-c", "--config",
                               help="path to configuration file", required=False,
-                              default=r"/home/ajdelalo/projects/DLShapeAnalysis/configs/config_cluster.yaml"
+                              default=r"/home/ajdelalo/projects/DLShapeAnalysis/configs/config_UKB.yaml"
                               )
     parser_train.add_argument("-n", "--exp_name",
                               help="custom experiment name", required=False,
@@ -474,10 +480,10 @@ def parse_command_line():
 if __name__ == '__main__':
     args = parse_command_line()
     if args.pipeline is None:
-        sys.argv.append("test")
+        sys.argv.append("train")
         args = parse_command_line()
-        config_path, weights = args.config, args.weights
-        main_test(weights, config_path)
+        config_path, exp_name = args.config, args.exp_name
+        main_train(config_path, exp_name)
     elif args.pipeline == "train":
         config_path, exp_name = args.config, args.exp_name
         weights_path, fine_tune_epochs = main_train(config_path, exp_name)

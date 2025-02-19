@@ -8,6 +8,8 @@ test_data_dir: /home/ajdelalo/projects/DLShapeAnalysis/UKB_Dataset
 test_start_idx: 4
 num_test: 1
 log_dir: /home/ajdelalo/projects/ClusterTrained
+split_file: train_val_test_split.json # To be put in the same directory as the data
+mode: train
 
 params:
     initial_val: False

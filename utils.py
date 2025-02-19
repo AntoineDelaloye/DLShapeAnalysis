@@ -8,6 +8,7 @@ from monai.losses import ContrastiveLoss
 import os
 from pathlib import Path
 import nibabel as nib
+import json
 
 
 class ValProgressBar(TQDMProgressBar):
@@ -158,7 +159,7 @@ def contrastive_loss_all_elements(latents: torch.Tensor, neg_weight: float = 1.0
             loss[i, j] = contr_loss(latents[i, j], target)
     return loss
 
-def find_SAX_images_UKB(load_dir: Union[str, Path], num_cases:int = -1, case_start_idx:int = 0, **kwargs):
+def find_SAX_images_UKB(load_dir: Union[str, Path], split_file:str, mode:str, **kwargs):
     ims = []
     segs = []
     count = 0
@@ -166,35 +167,38 @@ def find_SAX_images_UKB(load_dir: Union[str, Path], num_cases:int = -1, case_sta
     start_time = time.time()
     spcs = []
     shapes = []
+    split_file = os.path.join(load_dir, split_file)
 
-    patients = os.listdir(Path(load_dir))
-    patients = sorted([i for i in patients if i.startswith('sub-')])
-    for i, patientID in enumerate(patients):
-        if i < case_start_idx:
-            patients_to_remove.append(i)
-            continue
-        if num_cases > 0 and count >= num_cases:
-            patients_not_loaded = np.arange(count, len(patients), dtype=int).tolist()
-            patients_to_remove = patients_to_remove + patients_not_loaded
-            break
-        im_path = Path(load_dir) / patientID / "anat" / f"{patientID}_img-short_axis_tp-2.nii.gz"
-        seg_path = Path(load_dir) / "derivatives" / "sa_segmentation" / patientID / f"{patientID}_sa_seg_all.nii.gz"
-        if not os.path.exists(im_path) or not os.path.exists(seg_path):
-            patients_to_remove.append(i)
-            continue
-        im = nib.load(im_path)
-        shapes.append(im.shape)
-        spcs.append(im.header.get_zooms())
-        ims.append(im_path)
-        segs.append(seg_path)
-        count += 1
-    if num_cases > 0 and count != num_cases:
-        raise ValueError(f"Did not find required amount of cases ({num_cases}) in directory: {load_dir}")
+    actual_patients = os.listdir(Path(load_dir))
+    actual_patients = sorted([i for i in actual_patients if i.startswith('sub-')])
+    actual_set = set(actual_patients)
+    if os.path.isfile(split_file):
+        with open(split_file, 'r') as f:
+            split_data = json.load(f)
+        print(f'Loaded existing dataset split from {split_file}')
     
-    elapsed = time.time() - start_time
-    print('OH')
-    print(f"Found {count} cases in {elapsed//60}m {int(elapsed%60)}s.")
-    patients = [patient for i, patient in enumerate(patients) if i not in patients_to_remove]
+    patients = split_data[mode]
+
+    train_set = set(split_data['train'])
+    val_set = set(split_data['val'])
+    test_set = set(split_data['test'])
+
+    if not (train_set.issubset(actual_set)):
+        raise ValueError(f'Train set contains patients not in the dataset')
+    if not (val_set.issubset(actual_set)):
+        raise ValueError(f'Validation set contains patients not in the dataset')
+    if not (test_set.issubset(actual_set)):
+        raise ValueError(f'Test set contains patients not in the dataset')
+    
+    print("All split patients are in the actual patients")
+
+    for patient in patients:
+        img_path = os.path.join(load_dir, patient, 'anat', f'{patient}_img-short_axis_tp-2.nii.gz')
+        seg_path = os.path.join(load_dir, 'derivatives', 'sa_segmentation', patient, f'{patient}_sa_seg_all.nii.gz')
+
+        if os.path.isfile(img_path) and os.path.isfile(seg_path):
+            ims.append(str(img_path))
+            segs.append(str(seg_path))
     return ims, segs, patients
 
 def find_SAX_images_test(load_dir: Union[str, Path], num_cases:int = -1, case_start_idx:int = 0, **kwargs):
